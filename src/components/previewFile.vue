@@ -91,8 +91,12 @@ export default {
       this.selectFile = this.attrData.selectFile
       for (var i = 0; i < this.fileList.length; i++) {
         if (this.fileList[i].name === this.selectFile) {
-          // if (true) {}
-          this.$refs.fileListEl.scrollTo({ top: i * this.itemH, behavior: "smooth" })
+          let scrollToPoint = i * this.itemH,
+              thisscrollTop = this.$refs.fileListEl.scrollTop,
+              thisHeight = this.$refs.fileListEl.clientHeight
+          if (thisscrollTop < scrollToPoint || (thisscrollTop + thisHeight) > scrollToPoint) {
+            this.$refs.fileListEl.scrollTo({ top: i * this.itemH, behavior: "smooth" })
+          }
           break
         }
       }
@@ -177,6 +181,23 @@ export default {
   overflow-y: auto;
 }
 
+.content .right-item .scroll-file-list::-webkit-scrollbar{
+  width: 7px;
+  background-color: #f1f1f1;
+}
+.content .right-item .scroll-file-list::-webkit-scrollbar-button{
+  display: none;
+}
+.content .right-item .scroll-file-list::-webkit-scrollbar-thumb{
+  background-color: #d7dadd;
+}
+
+
+.scroll-box {
+  width: 100%;
+  height: auto;
+}
+
 .btn {
   background-color: transparent;
   border: none;
@@ -196,7 +217,7 @@ export default {
 }
 
 .file-item:nth-child(n + 10):last-child {
-  border-bottom: none;
+  /*border-bottom: none;*/
 }
 
 .file-item:hover {
@@ -249,9 +270,5 @@ export default {
   color: #666666;
 }
 
-.scroll-box {
-  width: 100%;
-  height: auto;
-}
 
 </style>
