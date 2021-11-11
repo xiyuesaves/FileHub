@@ -18,14 +18,16 @@
         <div class="audio">
         </div>
       </div>
-      <div class="file-list">
-        <div class="scroll-box">
-          <div @click="selectOther(file.name)" v-for="(file,idnex) in attrData.fileList" v-if="file.type !== 'floder'" :class="['file-item',{'active':file.name === selectFile}]">
-            <span :title="file.type" class="iconfont file-icon icon-wenjian"></span>
-            <div class="file-detail">
-              <span :title="file.name" class="file-name">
-                {{file.name}}
-              </span>
+      <div class="right-item">
+        <div ref="fileListEl" @scroll="handleScroll" class="scroll-file-list">
+          <div :style="`height: ${scrollH}px;`" class="scroll-box">
+            <div @click="selectOther(file.name)" :style="`transform: translateY(${offsetY}px);`" v-for="(file,idnex) in realRender" v-if="file.type !== 'floder'" :class="['file-item',{'active':file.name === selectFile}]">
+              <span :title="file.type" class="iconfont file-icon icon-wenjian"></span>
+              <div class="file-detail">
+                <span :title="file.name" class="file-name">
+                  {{file.name}}
+                </span>
+              </div>
             </div>
           </div>
         </div>
@@ -39,23 +41,65 @@ export default {
   data() {
     return {
       isFullSize: false,
-      selectFile: this.attrData.selectFile
+      selectFile: this.attrData.selectFile,
+      fileList: this.filterFile(this.attrData.fileList, "all"),
+      realRender: [],
+      viewH: window.screen.availHeight,
+      itemH: 38,
+      scrollH: 0,
+      offsetY: 0,
+      showNum: 0
     }
   },
   methods: {
+    filterFile(arr, type) {
+      let newArr = []
+      for (var i = 0; i < arr.length; i++) {
+        if (arr[i].type === type || (type === "all" && arr[i].type !== "floder")) {
+          newArr.push(arr[i])
+        }
+      }
+      return newArr
+    },
     selectOther(fileName) {
-      this.selectFile = fileName
-      let url = window.location
-      history.pushState({ lastPath: url.href }, "", url.href.replace(/\?view=.+$/,`?view=${this.selectFile}`))
+      console.log("切换选中")
+      if (fileName !== this.selectFile) {
+        this.selectFile = fileName
+        let url = window.location
+        // this.attrData.selectThisFile(this.selectFile)
+        this.$emit("changeSelectFile",fileName)
+        history.pushState({ lastPath: url.href }, "", url.href.replace(/\?view=.+$/, `?view=${this.selectFile}`))
+      }
+    },
+    handleScroll(e) {
+      let scrollTop = e.target.scrollTop; // 滚去的高度
+      let scrollVal = scrollTop - (scrollTop % this.itemH)
+      this.offsetY = scrollVal;
+      this.realRender = this.fileList.slice(
+        Math.floor(scrollTop / this.itemH),
+        Math.floor(scrollTop / this.itemH) + this.showNum
+      )
+    },
+    initView() {
+      this.scrollH = this.itemH * this.fileList.length
+      this.showNum = Math.floor(this.viewH / this.itemH) + 4;
+      this.realRender = this.fileList.slice(0, this.showNum);
     }
   },
   watch: {
     'attrData.selectFile'() {
       this.selectFile = this.attrData.selectFile
+      for (var i = 0; i < this.fileList.length; i++) {
+        if (this.fileList[i].name === this.selectFile) {
+          // if (true) {}
+          this.$refs.fileListEl.scrollTo({ top: i * this.itemH, behavior: "smooth" })
+          break
+        }
+      }
     }
   },
   mounted() {
-    console.log(this.attrData)
+    this.initView()
   }
 }
 
@@ -118,15 +162,20 @@ export default {
   padding: 16px;
 }
 
-.content .file-list {
+.content .right-item {
   box-sizing: border-box;
   height: 100%;
   min-width: 296px;
   /*padding: 16px;*/
-  overflow-y: auto;
+  overflow: hidden;
   border-left: solid 1px #d5d8da;
 }
 
+.content .right-item .scroll-file-list {
+  width: 100%;
+  height: 100%;
+  overflow-y: auto;
+}
 
 .btn {
   background-color: transparent;

@@ -1,6 +1,6 @@
 <template>
   <div @scroll="fileListScroll" id="app">
-    <popUps :isOpen="showMask" :initComponent="initComponent" :isTransparent="maskTransparent" :maskContent="maskContent" :attrData="attrData" :closeMask="closeMask" />
+    <popUps :isOpen="showMask" @changeSelectFile="changeSelectFile" :initComponent="initComponent" :isTransparent="maskTransparent" :maskContent="maskContent" :attrData="attrData" :closeMask="closeMask" />
     <div class="main-view">
       <topTitle :title="title" />
       <actionBar :driveList="driveList" :selectDrive="selectDrive" :switchDirectory="switchDirectory" :createFolder="createFolder" :createFile="createFile" />
@@ -73,7 +73,7 @@ export default {
           console.log(this.urlPath)
           if (this.urlPath.includes(':/')) { // 判断根目录是否有效
             let urlLetter = `${this.urlPath.split(":/")[0]}:/`,
-              inLoad = false
+                inLoad = false
             history.replaceState({ lastPath: this.url }, "", this.url)
             for (var i = 0; i < this.driveList.length; i++) {
               if (this.driveList[i].driveLetter === urlLetter) {
@@ -120,7 +120,7 @@ export default {
       }
     },
     showPreview(name) {
-      console.log("打开文件")
+      console.log("预览文件")
       this.showMask = true;
       this.maskContent = previewFile;
       this.selectFile = name;
@@ -130,6 +130,9 @@ export default {
         selectFile: this.selectFile
       };
     },
+    changeSelectFile(fileName){
+      this.selectFile = fileName
+    },
     initComponent() { //初始化弹窗组件
       this.maskContent = null
       this.attrData = {}
@@ -138,10 +141,23 @@ export default {
       this.source = this.axios.CancelToken.source()
       return this.source.token
     },
-    getFileList(path,callback) {
+    getFileList(path, callback) {
       let encode = encodeURI(path),
         lastPath = this.filePath,
         lastFileList = this.fileList
+      // 处理链接路径的错误
+      if (path.substr(-1) !== "/") {
+        console.log("链接末尾添加/")
+        path += "/"
+        history.replaceState({ lastPath: `${this.urlHost}/${path}` }, "", `${this.urlHost}/${path}`)
+        this.urlPath = path
+      }
+      if (/\/{2,}/.test(path)) {
+        console.log("删除无意义/")
+        path = path.replace(/\/{2,}/, "/")
+        history.replaceState({ lastPath: `${this.urlHost}/${path}` }, "", `${this.urlHost}/${path}`)
+        this.urlPath = path
+      }
       if (this.loadFileList) {
         this.source.cancel('结束上一次请求');
       }
@@ -157,10 +173,11 @@ export default {
         if (res.data.status === "success") {
           this.fileList = res.data.data
           if (this.urlPath !== path) {
-            console.log("路径写入到链接")
             if (!history.state) {
+              console.log("重写当前地址")
               history.replaceState({ lastPath: `${this.urlHost}/${path}` }, "", `${this.urlHost}/${path}`)
             } else {
+              console.log("前进地址")
               history.pushState({ lastPath: window.location.href }, "", `${this.urlHost}/${path}`)
             }
             this.urlPath = path
@@ -232,7 +249,7 @@ export default {
       this.urlPath = decodeURI(window.location.pathname.substring(1)) // 获取文件路径
       let viewFile = new URLSearchParams(decodeURI(window.location.search.substring(1))) // 获取当前预览文件名
       this.selectFile = viewFile.get("view") // 传递给实例
-      if (this.showMask && this.selectFile === null) { // 如果窗口是打开的，而且没有预览文件，则关闭预览框
+      if (this.showMask && (this.selectFile === null || this.selectFile == false)) { // 如果窗口是打开的，而且没有预览文件，则关闭预览框
         this.showMask = false
       } else if (!this.showMask && this.selectFile) { // 如果有选中文件，则唤起预览窗口
         console.log("唤起预览页面")

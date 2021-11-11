@@ -5,7 +5,7 @@
       </div>
       <div class="center-box">
         <div class="show-content">
-          <component :closeMask="closeMask" v-bind="$attrs" :is="this.maskContent"></component>
+          <component v-on="$listeners" :closeMask="closeMask" v-bind="$attrs" :is="this.maskContent"></component>
         </div>
       </div>
     </div>
