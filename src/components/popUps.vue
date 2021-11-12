@@ -1,7 +1,7 @@
 <template>
-  <transition name="show" @after-leave="initComponent">
+  <transition name="show">
     <div v-show="isOpen" class="top-mask">
-      <div @click="closeMask" :class="['back-mask',{transparent:isTransparent}]">
+      <div @click="closeMask" :class="['back-mask']">
       </div>
       <div class="center-box">
         <div class="show-content">
@@ -13,7 +13,7 @@
 </template>
 <script>
 export default {
-  props: ["maskContent", "isOpen", "closeMask", "isTransparent","initComponent"],
+  props: ["maskContent", "isOpen", "closeMask"],
   inheritAttrs: false, // 用于隐藏未被props接受的绑定数据
   methods: {}
 }
@@ -22,6 +22,7 @@ export default {
 <style>
 .show-enter-active,
 .show-leave-active {
+  pointer-events: auto;
   transition: opacity 150ms;
 }
 
@@ -48,10 +49,6 @@ export default {
   z-index: 1;
   width: 100%;
   height: 100%;
-}
-
-.top-mask .transparent {
-  background-color: transparent;
 }
 
 .top-mask .center-box {

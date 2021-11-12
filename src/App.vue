@@ -1,6 +1,9 @@
 <template>
   <div @scroll="fileListScroll" id="app">
-    <popUps :isOpen="showMask" @changeSelectFile="changeSelectFile" :initComponent="initComponent" :isTransparent="maskTransparent" :maskContent="maskContent" :attrData="attrData" :closeMask="closeMask" />
+    <!-- 文件预览 -->
+    <popUps :isOpen="showPreviewFile" @changeSelectFile="changeSelectFile" :maskContent="previewFile" :filePath="filePath" :fileLists="fileList" :selectFile="selectFile" :closeMask="closePreviewFile" />
+    <!-- 报错提醒 -->
+    
     <div class="main-view">
       <topTitle :title="title" />
       <actionBar :driveList="driveList" :selectDrive="selectDrive" :switchDirectory="switchDirectory" :createFolder="createFolder" :createFile="createFile" />
@@ -43,11 +46,10 @@ export default {
       url: decodeURI(window.location.href),
       urlPath: decodeURI(window.location.pathname.replace(/\//, "")),
       urlHost: window.location.origin,
-      showMask: false,
-      maskTransparent: false,
-      maskContent: null,
       selectFile: "",
-      attrData: {} // 遮罩层数据
+
+      showPreviewFile: false, // 文件预览窗口开关
+      previewFile: previewFile, // 文件预览组件
     }
   },
   methods: {
@@ -70,10 +72,9 @@ export default {
         console.log("已获取根目录", res)
         if (res.data.status == 'success') {
           this.driveList = res.data.data
-          console.log(this.urlPath)
           if (this.urlPath.includes(':/')) { // 判断根目录是否有效
             let urlLetter = `${this.urlPath.split(":/")[0]}:/`,
-                inLoad = false
+              inLoad = false
             history.replaceState({ lastPath: this.url }, "", this.url)
             for (var i = 0; i < this.driveList.length; i++) {
               if (this.driveList[i].driveLetter === urlLetter) {
@@ -121,21 +122,11 @@ export default {
     },
     showPreview(name) {
       console.log("预览文件")
-      this.showMask = true;
-      this.maskContent = previewFile;
+      this.showPreviewFile = true;
       this.selectFile = name;
-      this.attrData = {
-        filePath: this.filePath,
-        fileList: this.fileList,
-        selectFile: this.selectFile
-      };
     },
-    changeSelectFile(fileName){
+    changeSelectFile(fileName) {
       this.selectFile = fileName
-    },
-    initComponent() { //初始化弹窗组件
-      this.maskContent = null
-      this.attrData = {}
     },
     newCancelToken() {
       this.source = this.axios.CancelToken.source()
@@ -149,7 +140,7 @@ export default {
       if (path.substr(-1) !== "/") {
         console.log("链接末尾添加/")
         path += "/"
-        history.replaceState({ lastPath: `${this.urlHost}/${path}` }, "", `${this.urlHost}/${path}`)
+        history.replaceState({ lastPath: this.url }, "", `${this.urlHost}/${path}`)
         this.urlPath = path
       }
       if (/\/{2,}/.test(path)) {
@@ -191,7 +182,7 @@ export default {
           this.fileList = lastFileList
           switch (res.data.error.code) {
             case "EPERM":
-              console.log("没有权限", history.state)
+              console.log("没有权限")
               this.showMask = true
               this.maskContent = error
               this.attrData = {
@@ -199,7 +190,7 @@ export default {
               }
               break
             case "ENOENT":
-              console.log("路径不存在", history.state)
+              console.log("路径不存在")
               this.showMask = true
               this.maskContent = error
               this.attrData = {
@@ -230,16 +221,14 @@ export default {
         }
       })
     },
-    closeMask() {
-      this.showMask = false;
-      if (this.maskContent === previewFile) {
+    closePreviewFile() { // 关闭预览窗口
+      this.showPreviewFile = false;
+      let viewFile = new URLSearchParams(decodeURI(window.location.search.substring(1)))
+      if (viewFile.get("view") == false) {
+        history.replaceState({ lastPath: this.url }, "", `${window.location.origin}${window.location.pathname}`)
+      } else if (viewFile.get("view") !== null) {
         history.pushState({ lastPath: window.location.href }, "", `${window.location.origin}${window.location.pathname}`)
       }
-    }
-  },
-  watch: {
-    selectFile() {
-      this.$set(this.attrData, "selectFile", this.selectFile)
     }
   },
   mounted() {
@@ -249,10 +238,9 @@ export default {
       this.urlPath = decodeURI(window.location.pathname.substring(1)) // 获取文件路径
       let viewFile = new URLSearchParams(decodeURI(window.location.search.substring(1))) // 获取当前预览文件名
       this.selectFile = viewFile.get("view") // 传递给实例
-      if (this.showMask && (this.selectFile === null || this.selectFile == false)) { // 如果窗口是打开的，而且没有预览文件，则关闭预览框
-        this.showMask = false
-      } else if (!this.showMask && this.selectFile) { // 如果有选中文件，则唤起预览窗口
-        console.log("唤起预览页面")
+      if (this.showPreviewFile && (this.selectFile === null || this.selectFile == false)) { // 如果窗口是打开的，而且没有预览文件，则关闭预览框
+        this.closePreviewFile()
+      } else if (!this.showPreviewFile && this.selectFile) { // 如果有选中文件，则唤起预览窗口
         this.showPreview(this.selectFile)
       }
       if (this.urlPath !== this.filePath) {
@@ -261,8 +249,6 @@ export default {
         if (thisletter && this.selectDrive !== thisletter) {
           this.selectDrive = thisletter
         }
-      } else {
-        console.log("跳过刷新")
       }
     });
   }

@@ -37,12 +37,11 @@
 </template>
 <script>
 export default {
-  props: ["closeMask", "attrData"],
+  props: ["closeMask", "filePath","fileLists","selectFile"],
   data() {
     return {
       isFullSize: false,
-      selectFile: this.attrData.selectFile,
-      fileList: this.filterFile(this.attrData.fileList, "all"),
+      fileList: this.filterFile(this.fileLists, "all"),
       realRender: [],
       viewH: window.screen.availHeight,
       itemH: 38,
@@ -62,12 +61,10 @@ export default {
       return newArr
     },
     selectOther(fileName) {
-      console.log("切换选中")
       if (fileName !== this.selectFile) {
-        this.selectFile = fileName
-        let url = window.location
         this.$emit("changeSelectFile", fileName)
-        history.pushState({ lastPath: url.href }, "", url.href.replace(/\?view=.+$/, `?view=${this.selectFile}`))
+        let url = window.location
+        history.pushState({ lastPath: url.href }, "", url.href.replace(/\?view=.+$/, `?view=${fileName}`))
       }
     },
     handleScroll(e) {
@@ -80,23 +77,20 @@ export default {
       )
     },
     initView() {
-      this.scrollH = this.itemH * this.fileList.length
+      this.scrollH = this.itemH * this.fileList.length;
       this.showNum = Math.floor(this.viewH / this.itemH) + 4;
       this.realRender = this.fileList.slice(0, this.showNum);
       setTimeout(() => {
-        this.scrollToFile()
-      })
+        this.scrollToFile();
+      });
     },
     scrollToFile() {
-      console.log(this.fileList)
       for (var i = 0; i < this.fileList.length; i++) {
         if (this.fileList[i].name === this.selectFile) {
           let scrollToPoint = i * this.itemH,
             thisscrollTop = this.$refs.fileListEl.scrollTop,
             thisHeight = this.$refs.fileListEl.clientHeight
-          // console.log(`${thisscrollTop} > ${scrollToPoint} || ${thisscrollTop + thisHeight} < ${scrollToPoint}`)
           if (thisscrollTop > scrollToPoint || (thisscrollTop + thisHeight) < scrollToPoint) { // 只有当选中项不在可见范围才进行滚动
-            console.log("滚动到文件",this.$refs.fileListEl,i * this.itemH)
             this.$refs.fileListEl.scrollTo({ top: i * this.itemH, behavior: "smooth" })
           }
           break
@@ -105,8 +99,11 @@ export default {
     }
   },
   watch: {
-    'attrData.selectFile'() {
-      this.selectFile = this.attrData.selectFile
+    fileLists(){
+      this.fileList = this.filterFile(this.fileLists, "all")
+      this.initView()
+    },
+    selectFile() {
       this.scrollToFile()
     }
   },

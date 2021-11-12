@@ -46,12 +46,6 @@ export default {
       activeIndex: -1,
       pathArr: this.filePath.split("/"),
       lastPath: "",
-      // fileIcons: {
-      //   floder: "icon-wenjianjia",
-      //   mp4: "icon-video",
-      //   image: "icon-tupian",
-      //   noIcon: "icon-wenjian"
-      // },
       realRender: [],
       scrollH: 0,
       showNum: 0,
