@@ -94,7 +94,8 @@ export default {
           let scrollToPoint = i * this.itemH,
               thisscrollTop = this.$refs.fileListEl.scrollTop,
               thisHeight = this.$refs.fileListEl.clientHeight
-          if (thisscrollTop < scrollToPoint || (thisscrollTop + thisHeight) > scrollToPoint) {
+              // console.log(`${thisscrollTop} > ${scrollToPoint} || ${thisscrollTop + thisHeight} < ${scrollToPoint}`)
+          if (thisscrollTop > scrollToPoint || (thisscrollTop + thisHeight) < scrollToPoint) {
             this.$refs.fileListEl.scrollTo({ top: i * this.itemH, behavior: "smooth" })
           }
           break
