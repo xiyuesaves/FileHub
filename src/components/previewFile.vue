@@ -66,8 +66,7 @@ export default {
       if (fileName !== this.selectFile) {
         this.selectFile = fileName
         let url = window.location
-        // this.attrData.selectThisFile(this.selectFile)
-        this.$emit("changeSelectFile",fileName)
+        this.$emit("changeSelectFile", fileName)
         history.pushState({ lastPath: url.href }, "", url.href.replace(/\?view=.+$/, `?view=${this.selectFile}`))
       }
     },
@@ -84,23 +83,31 @@ export default {
       this.scrollH = this.itemH * this.fileList.length
       this.showNum = Math.floor(this.viewH / this.itemH) + 4;
       this.realRender = this.fileList.slice(0, this.showNum);
-    }
-  },
-  watch: {
-    'attrData.selectFile'() {
-      this.selectFile = this.attrData.selectFile
+      setTimeout(() => {
+        this.scrollToFile()
+      })
+    },
+    scrollToFile() {
+      console.log(this.fileList)
       for (var i = 0; i < this.fileList.length; i++) {
         if (this.fileList[i].name === this.selectFile) {
           let scrollToPoint = i * this.itemH,
-              thisscrollTop = this.$refs.fileListEl.scrollTop,
-              thisHeight = this.$refs.fileListEl.clientHeight
-              // console.log(`${thisscrollTop} > ${scrollToPoint} || ${thisscrollTop + thisHeight} < ${scrollToPoint}`)
-          if (thisscrollTop > scrollToPoint || (thisscrollTop + thisHeight) < scrollToPoint) {
+            thisscrollTop = this.$refs.fileListEl.scrollTop,
+            thisHeight = this.$refs.fileListEl.clientHeight
+          // console.log(`${thisscrollTop} > ${scrollToPoint} || ${thisscrollTop + thisHeight} < ${scrollToPoint}`)
+          if (thisscrollTop > scrollToPoint || (thisscrollTop + thisHeight) < scrollToPoint) { // 只有当选中项不在可见范围才进行滚动
+            console.log("滚动到文件",this.$refs.fileListEl,i * this.itemH)
             this.$refs.fileListEl.scrollTo({ top: i * this.itemH, behavior: "smooth" })
           }
           break
         }
       }
+    }
+  },
+  watch: {
+    'attrData.selectFile'() {
+      this.selectFile = this.attrData.selectFile
+      this.scrollToFile()
     }
   },
   mounted() {
@@ -182,14 +189,16 @@ export default {
   overflow-y: auto;
 }
 
-.content .right-item .scroll-file-list::-webkit-scrollbar{
+.content .right-item .scroll-file-list::-webkit-scrollbar {
   width: 7px;
   background-color: #f1f1f1;
 }
-.content .right-item .scroll-file-list::-webkit-scrollbar-button{
+
+.content .right-item .scroll-file-list::-webkit-scrollbar-button {
   display: none;
 }
-.content .right-item .scroll-file-list::-webkit-scrollbar-thumb{
+
+.content .right-item .scroll-file-list::-webkit-scrollbar-thumb {
   background-color: #d7dadd;
 }
 
@@ -270,6 +279,5 @@ export default {
   box-sizing: border-box;
   color: #666666;
 }
-
 
 </style>
