@@ -276,73 +276,8 @@ export default {
 }
 
 .iconfont {
-  font-family: "iconfont" !important;
-  font-size: 16px;
-  font-style: normal;
   color: #666666;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
 }
-
-
-.icon-erweima:before {
-  content: "\e642";
-}
-
-.icon-gougou:before {
-  content: "\e6a3";
-}
-
-.icon-tupian:before {
-  content: "\e629";
-}
-
-.icon-videos:before {
-  content: "\e618";
-}
-
-.icon-wenjian:before {
-  content: "\e689";
-}
-
-.icon-video:before {
-  content: "\e638";
-}
-
-.icon-huanyuan:before {
-  content: "\e657";
-}
-
-.icon-guanbi:before {
-  content: "\e639";
-}
-
-.icon-wenjianjia:before {
-  content: "\e80c";
-}
-
-.icon-fuzhi:before {
-  content: "\e62b";
-}
-
-.icon-piliangchuangjian:before {
-  content: "\e615";
-}
-
-.icon-orbit-full:before {
-  content: "\ea06";
-}
-
-.icon-maximizezuidahua:before {
-  content: "\e6db";
-}
-
-.icon-cipanbaohu:before {
-  content: "\e631";
-}
-
-
-
 
 body {
   margin: 0;

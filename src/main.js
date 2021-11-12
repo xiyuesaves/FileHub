@@ -7,6 +7,8 @@ import App from './App'
 import axios from 'axios'
 import VueAxios from 'vue-axios'
 
+import './assets/iconfont.css'
+
 Vue.use(VueAxios,axios);
 
 // Vue.use(VueResource)

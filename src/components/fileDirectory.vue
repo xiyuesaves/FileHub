@@ -16,7 +16,7 @@
     </div>
     <div ref="fileListEl" :style="`height:${realViewH}px`" class="file-list">
       <div @click="openFile(file)" :style="`transform:translateY(${offsetY}px);`" v-for="(file,index) in realRender" :class="['file-item']">
-        <span :title="file.type" :class="['iconfont','file-icon', fileIcons[file.type] ? fileIcons[file.type] : fileIcons['noIcon']]"></span>
+        <span :title="file.type" :class="['iconfont','file-icon', fileIcons(file.type)]"></span>
         <div class="file-detail">
           <span :title="file.name" class="file-name">
             {{file.name}}
@@ -46,12 +46,12 @@ export default {
       activeIndex: -1,
       pathArr: this.filePath.split("/"),
       lastPath: "",
-      fileIcons: {
-        floder: "icon-wenjianjia",
-        mp4: "icon-video",
-        image: "icon-tupian",
-        noIcon: "icon-wenjian"
-      },
+      // fileIcons: {
+      //   floder: "icon-wenjianjia",
+      //   mp4: "icon-video",
+      //   image: "icon-tupian",
+      //   noIcon: "icon-wenjian"
+      // },
       realRender: [],
       scrollH: 0,
       showNum: 0,
@@ -73,6 +73,28 @@ export default {
     }
   },
   methods: {
+    fileIcons(type) {
+      switch (type) {
+        case "floder":
+          return "icon-wenjianjia"
+          break
+        case "jpg":
+        case "png":
+        case "gif":
+        case "webp":
+        case "bmp":
+          return "icon-tupian"
+          break
+        case "mp4":
+        case "rmvb":
+        case "avi":
+        case "wmv":
+          return "icon-video"
+          break
+        default:
+          return "icon-wenjian"
+      }
+    },
     gotoFolder(path) {
       path++
       let newPath = ""
