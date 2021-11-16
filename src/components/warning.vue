@@ -19,7 +19,8 @@ export default {
 </script>
 <style scoped>
 .show-enter-active,
-.show-leave-active {
+.show-leave-active,
+.show-move {
   transition: all 300ms;
 }
 
@@ -28,9 +29,7 @@ export default {
   opacity: 0;
   transform: translateY(-30px);
 }
-.show-move{
-  transition: all 300ms;
-}
+
 .show-leave-active{
   left: 50%;
   transform: translateX(-50%) translateY(-30px);
@@ -59,14 +58,15 @@ export default {
   min-width: 200px;
   max-width: 100%;
   box-sizing: border-box;
-  height: 30px;
+  height: 36px;
   line-height: 30px;
-  border-radius: 0 0 6px 6px;
+  border-radius:6px;
+  padding-top: 6px;
   border: solid 1px #eed888;
   border-top: none;
   background-color: #fff8c5;
   box-shadow: rgb(140 149 159 / 40%) 0px 4px 24px;
-  margin-bottom: -6px;
+  margin-top: -6px;
   position: relative;
 }
 

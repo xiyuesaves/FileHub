@@ -147,53 +147,54 @@ export default {
       return this.source.token
     },
     getFileList(path, callback) {
-      let encode = encodeURI(path),
+      let encode = decodeURI(path),
         lastPath = this.filePath,
         lastFileList = this.fileList
       // 处理链接路径的错误
-      if (path.substr(-1) !== "/") {
+      if (encode.substr(-1) !== "/") {
         console.log("链接末尾添加/")
-        path += "/"
-        history.replaceState({ lastPath: this.url }, "", `${this.urlHost}/${path}`)
-        this.urlPath = path
+        encode += "/"
+        history.replaceState({ lastPath: this.url }, "", `${this.urlHost}/${encode}`)
+        this.urlPath = encode
       }
-      if (/\/{2,}/.test(path)) {
+      if (/\/{2,}/.test(encode)) {
         console.log("删除无意义/")
-        path = path.replace(/\/{2,}/, "/")
-        history.replaceState({ lastPath: `${this.urlHost}/${path}` }, "", `${this.urlHost}/${path}`)
-        this.urlPath = path
+        encode = encode.replace(/\/{2,}/, "/")
+        history.replaceState({ lastPath: `${this.urlHost}/${encode}` }, "", `${this.urlHost}/${encode}`)
+        this.urlPath = encode
       }
       if (this.loadFileList) {
         this.source.cancel('结束上一次请求');
       }
       // this.fileList = []
-      this.filePath = path
+      // this.filePath = encode
       this.loadFileList = true
       this.axios.get(`${localhost}/path/${encode}`, {
         cancelToken: this.newCancelToken()
       }).then(res => {
+        this.filePath = encode
         this.loadFileList = false
-        console.log("获取路径内容", path)
+        console.log("获取路径内容", encode)
         console.log("请求结束", res.data)
         if (res.data.status === "success") {
           this.fileList = res.data.data
-          if (this.urlPath !== path) {
+          if (decodeURI(this.urlPath) !== encode) {
             if (!history.state) {
               console.log("重写当前地址")
-              history.replaceState({ lastPath: `${this.urlHost}/${path}` }, "", `${this.urlHost}/${path}`)
+              history.replaceState({ lastPath: `${this.urlHost}/${encode}` }, "", `${this.urlHost}/${encode}`)
             } else {
               console.log("前进地址")
-              history.pushState({ lastPath: window.location.href }, "", `${this.urlHost}/${path}`)
+              history.pushState({ lastPath: window.location.href }, "", `${this.urlHost}/${encode}`)
             }
-            this.urlPath = path
+            this.urlPath = encode
           }
           this.url = window.location.href
           if (callback) { // 回调
             callback()
           }
         } else {
+          // this.fileList = lastFileList
           this.filePath = lastPath
-          this.fileList = lastFileList
           switch (res.data.error.code) {
             case "EPERM":
               console.log("没有权限")
