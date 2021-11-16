@@ -53,15 +53,15 @@ export default {
       showWarn: [], // 错误提示数组
       showPreviewFile: false, // 文件预览窗口开关
       previewFile: previewFile, // 文件预览组件
-      soo: 0
+      rarnKey: 0
     }
   },
   methods: {
     newWran(str) {
-      this.soo++
+      this.rarnKey++
       this.showWarn.unshift({
         str: str,
-        key: this.soo
+        key: this.rarnKey
       })
       setTimeout(() => {
         this.showWarn.pop()
