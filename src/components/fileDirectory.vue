@@ -14,7 +14,7 @@
         <span class="view-text">{{fileList.length}}</span> 个文件
       </div>
     </div>
-    <div ref="fileListEl" :style="`height:${realViewH}px`" class="file-list">
+    <div ref="fileListEl" :style="`height:${realViewH}px`" :class="['file-list',{loading:isLoad}]">
       <div @click="openFile(file)" :style="`transform:translateY(${offsetY}px);`" v-for="(file,index) in realRender" :class="['file-item']">
         <span :title="file.type" :class="['iconfont','file-icon', fileIcons(file.type)]"></span>
         <div class="file-detail">
@@ -31,8 +31,9 @@
         </div>
       </div>
       <div title="对，这里是空的" class="file-item no-file" v-if="fileList.length == 0">
-        <p v-if="isLoad">加载中...</p>
-        <p v-else>没有内容</p>
+        <!-- <p v-if="isLoad">加载中...</p> -->
+        <!-- <p v-else>没有内容</p> -->
+        <p>没有内容</p>
       </div>
     </div>
   </div>
@@ -240,6 +241,11 @@ export default {
   width: 100%;
   height: 100%;
   min-height: 190px;
+}
+
+.file-directory .file-list.loading{
+  opacity: 0.5;
+  pointer-events: none;
 }
 
 @media (max-width: 820px) {

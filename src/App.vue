@@ -3,7 +3,7 @@
     <!-- 文件预览 -->
     <popUps :isOpen="showPreviewFile" @changeSelectFile="changeSelectFile" :maskContent="previewFile" :filePath="filePath" :fileLists="fileList" :selectFile="selectFile" :closeMask="closePreviewFile" />
     <!-- 报错提醒 -->
-    
+    <warning :showWarn="showWarn" />
     <div class="main-view">
       <topTitle :title="title" />
       <actionBar :driveList="driveList" :selectDrive="selectDrive" :switchDirectory="switchDirectory" :createFolder="createFolder" :createFile="createFile" />
@@ -22,6 +22,8 @@ import toolBar from './components/toolBar'
 import popUps from './components/popUps'
 import error from './components/error'
 import previewFile from './components/previewFile'
+import warning from './components/warning'
+
 
 var localhost = 'http://127.0.0.1:88'
 
@@ -32,7 +34,8 @@ export default {
     actionBar,
     fileDirectory,
     toolBar,
-    popUps
+    popUps,
+    warning
   },
   data() {
     return {
@@ -47,12 +50,23 @@ export default {
       urlPath: decodeURI(window.location.pathname.replace(/\//, "")),
       urlHost: window.location.origin,
       selectFile: "",
-
+      showWarn: [], // 错误提示数组
       showPreviewFile: false, // 文件预览窗口开关
       previewFile: previewFile, // 文件预览组件
+      soo:0
     }
   },
   methods: {
+    newWran(str) {
+      this.soo++
+      this.showWarn.unshift({
+        str:str,
+        key:this.soo
+      })
+      setTimeout(() => {
+        this.showWarn.pop()
+      },1500)
+    },
     fileListScroll() {
       this.$refs.fileDirectory.handleScroll()
     },
@@ -152,7 +166,7 @@ export default {
       if (this.loadFileList) {
         this.source.cancel('结束上一次请求');
       }
-      this.fileList = []
+      // this.fileList = []
       this.filePath = path
       this.loadFileList = true
       this.axios.get(`${localhost}/path/${encode}`, {
@@ -185,17 +199,13 @@ export default {
               console.log("没有权限")
               this.showMask = true
               this.maskContent = error
-              this.attrData = {
-                errText: "没有访问权限"
-              }
+              this.newWran("没有访问权限")
               break
             case "ENOENT":
               console.log("路径不存在")
               this.showMask = true
               this.maskContent = error
-              this.attrData = {
-                errText: "路径不存在"
-              }
+              this.newWran("路径不存在")
               break
             default:
               console.log("未知错误:", res.data.error)
