@@ -48,24 +48,24 @@ export default {
       loadFileList: false,
       url: decodeURI(window.location.href),
       urlPath: decodeURI(window.location.pathname.replace(/\//, "")),
-      urlHost: window.location.origin,
+      urlHost: decodeURI(window.location.origin),
       selectFile: "",
       showWarn: [], // 错误提示数组
       showPreviewFile: false, // 文件预览窗口开关
       previewFile: previewFile, // 文件预览组件
-      soo:0
+      soo: 0
     }
   },
   methods: {
     newWran(str) {
       this.soo++
       this.showWarn.unshift({
-        str:str,
-        key:this.soo
+        str: str,
+        key: this.soo
       })
       setTimeout(() => {
         this.showWarn.pop()
-      },1500)
+      }, 1500)
     },
     fileListScroll() {
       this.$refs.fileDirectory.handleScroll()
@@ -89,13 +89,13 @@ export default {
           if (this.urlPath.includes(':/')) { // 判断根目录是否有效
             let urlLetter = `${this.urlPath.split(":/")[0]}:/`,
               inLoad = false
-            history.replaceState({ lastPath: this.url }, "", this.url)
+            history.replaceState({ lastPath: this.url }, "", encodeURI(this.url))
             for (var i = 0; i < this.driveList.length; i++) {
               if (this.driveList[i].driveLetter === urlLetter) {
                 this.selectDrive = urlLetter
                 this.filePath = this.urlPath
                 this.getFileList(this.filePath, () => {
-                  let viewFile = new URLSearchParams(decodeURI(window.location.search.substring(1))) // 获取当前预览文件名
+                  let viewFile = new URLSearchParams(window.location.search.substring(1)) // 获取当前预览文件名
                   this.selectFile = viewFile.get("view")
                   if (this.selectFile) { // 如果有选中文件，则唤起预览窗口
                     console.log("唤起预览页面")
@@ -123,10 +123,11 @@ export default {
     openFile(target) {
       switch (target.type) {
         case "floder":
-          console.log("打开文件夹", target.name)
+          console.log("打开文件夹", `${this.filePath}${target.name}/`)
           this.getFileList(`${this.filePath}${target.name}/`)
           break
         default:
+          console.log("打开文件预览", `${this.filePath}${target.name}/`)
           let url = window.location
           let nosearchUrl = url.href.replace(url.search, "")
           history.pushState({ lastPath: url.href }, "", `${nosearchUrl}?view=${target.name}`)
@@ -147,21 +148,21 @@ export default {
       return this.source.token
     },
     getFileList(path, callback) {
-      let encode = decodeURI(path),
+      let encode = encodeURI(path),
         lastPath = this.filePath,
         lastFileList = this.fileList
       // 处理链接路径的错误
-      if (encode.substr(-1) !== "/") {
+      if (path.substr(-1) !== "/") {
         console.log("链接末尾添加/")
-        encode += "/"
-        history.replaceState({ lastPath: this.url }, "", `${this.urlHost}/${encode}`)
-        this.urlPath = encode
+        path += "/"
+        history.replaceState({ lastPath: this.url }, "", encodeURI(`${this.urlHost}/${path}`))
+        this.urlPath = path
       }
-      if (/\/{2,}/.test(encode)) {
+      if (/\/{2,}/.test(path)) {
         console.log("删除无意义/")
-        encode = encode.replace(/\/{2,}/, "/")
-        history.replaceState({ lastPath: `${this.urlHost}/${encode}` }, "", `${this.urlHost}/${encode}`)
-        this.urlPath = encode
+        path = path.replace(/\/{2,}/, "/")
+        history.replaceState({ lastPath: `${this.urlHost}/${path}` }, "", encodeURI(`${this.urlHost}/${path}`))
+        this.urlPath = path
       }
       if (this.loadFileList) {
         this.source.cancel('结束上一次请求');
@@ -169,24 +170,27 @@ export default {
       // this.fileList = []
       // this.filePath = encode
       this.loadFileList = true
+      console.log("获取路径内容", path)
       this.axios.get(`${localhost}/path/${encode}`, {
         cancelToken: this.newCancelToken()
       }).then(res => {
-        this.filePath = encode
+        this.filePath = path
         this.loadFileList = false
-        console.log("获取路径内容", encode)
         console.log("请求结束", res.data)
         if (res.data.status === "success") {
           this.fileList = res.data.data
-          if (decodeURI(this.urlPath) !== encode) {
+          console.log(this.urlPath, path)
+          if (this.urlPath !== path) {
             if (!history.state) {
               console.log("重写当前地址")
-              history.replaceState({ lastPath: `${this.urlHost}/${encode}` }, "", `${this.urlHost}/${encode}`)
+              history.replaceState({ lastPath: `${this.urlHost}/${path}` }, "", encodeURI(`${this.urlHost}/${path}`))
             } else {
               console.log("前进地址")
-              history.pushState({ lastPath: window.location.href }, "", `${this.urlHost}/${encode}`)
+              history.pushState({ lastPath: window.location.href }, "", encodeURI(`${this.urlHost}/${path}`))
             }
-            this.urlPath = encode
+            this.urlPath = path
+          } else {
+            console.log("不修改路径")
           }
           this.url = window.location.href
           if (callback) { // 回调
