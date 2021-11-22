@@ -4,6 +4,7 @@ const fs = require('fs');
 const app = express();
 const cors = require("cors");
 
+
 let diskList = []
 diskinfo.getDrives(function(err, aDrives) {
   for (var i = 0; i < aDrives.length; i++) {
@@ -14,6 +15,7 @@ diskinfo.getDrives(function(err, aDrives) {
   }
 })
 app.use(cors());
+
 app.get('/getDriveList', function(req, res) {
   if (diskList.length) {
     res.json({
@@ -61,6 +63,8 @@ app.get('/path/*', function(req, res) {
     })
   }
 });
+app.use("/static",express.static('dist/static'));
+app.use("/*",express.static('dist'));
 
 function getFileType(fileName) {
   let suffix = fileName.split(".")
