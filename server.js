@@ -63,8 +63,13 @@ app.get('/path/*', function(req, res) {
     })
   }
 });
+
+app.use("/raw/C:/",express.static('C:/'));
+app.use("/raw/D:/",express.static('D:/'));
+
 app.use("/static",express.static('dist/static'));
 app.use("/*",express.static('dist'));
+
 
 function getFileType(fileName) {
   let suffix = fileName.split(".")

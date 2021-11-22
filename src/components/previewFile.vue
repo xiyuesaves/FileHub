@@ -9,20 +9,14 @@
     </div>
     <div class="content">
       <div class="preview-view">
-        <div class="image">
-        </div>
-        <div class="video">
-        </div>
-        <div class="text">
-        </div>
-        <div class="audio">
-        </div>
+        <download :selectFile="selectFile" />
+        
       </div>
       <div class="right-item">
         <div ref="fileListEl" @scroll="handleScroll" class="scroll-file-list">
           <div :style="`height: ${scrollH}px;`" class="scroll-box">
             <div @click="selectOther(file.name)" :style="`transform: translateY(${offsetY}px);`" v-for="(file,idnex) in realRender" v-if="file.type !== 'floder'" :class="['file-item',{'active':file.name === selectFile}]">
-              <span :title="file.type" class="iconfont file-icon icon-wenjian"></span>
+              <span :title="file.type" :class="['iconfont','file-icon', fileIcons(file.type)]"></span>
               <div class="file-detail">
                 <span :title="file.name" class="file-name">
                   {{file.name}}
@@ -36,8 +30,11 @@
   </div>
 </template>
 <script>
+
+import download from "./download"
+
 export default {
-  props: ["closeMask", "filePath","fileLists","selectFile"],
+  props: ["closeMask", "filePath", "fileLists", "selectFile", "fileIcons"],
   data() {
     return {
       isFullSize: false,
@@ -47,7 +44,9 @@ export default {
       itemH: 38,
       scrollH: 0,
       offsetY: 0,
-      showNum: 0
+      showNum: 0,
+      loadingView: true,
+      source: this.axios.CancelToken.source(),
     }
   },
   methods: {
@@ -96,15 +95,38 @@ export default {
           break
         }
       }
+    },
+    newCancelToken() {
+      this.source = this.axios.CancelToken.source()
+      return this.source.token
+    },
+    getView() {
+      // console.log("获取文件预览",this.selectFile)
+      // if (this.loadingView) {
+      //   this.source.cancel('结束上一次请求');
+      // }
+      // this.loadingView = true
+      // this.axios.post(`${localhost}/getFile/${encodeURI(this.filePath)}/${encodeURI(this.selectFile)}`,{
+      //   cancelToken: this.newCancelToken()
+      // }).then(res => {
+      //   console.log("请求完成")
+      //   this.loadingView = false
+      // })
     }
   },
+  components:{
+    download
+  },
   watch: {
-    fileLists(){
+    fileLists() {
       this.fileList = this.filterFile(this.fileLists, "all")
       this.initView()
     },
     selectFile() {
       this.scrollToFile()
+      if (this.selectFile) {
+        this.getView()
+      }
     }
   },
   mounted() {
@@ -166,9 +188,24 @@ export default {
 
 .content .preview-view {
   box-sizing: border-box;
-  width: 100%;
+  width: calc(100% - 295px);
   height: 100%;
   padding: 16px;
+  position: relative;
+}
+
+.content .loading-view{
+  position: absolute;
+  width: 100%;
+  font-size: 32px;
+  color: #dadada;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  top: 0;
+  left: 0;
+  background-color: #ffffff;
 }
 
 .content .right-item {
