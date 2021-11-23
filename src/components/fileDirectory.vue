@@ -41,7 +41,7 @@
 <script>
 export default {
   name: "fileDirectory",
-  props: ["filePath", "fileList", "openFile", "getFileList", "isLoad"],
+  props: ["filePath", "fileList", "openFile", "getFileList", "isLoad", "fileIcons"],
   data() {
     return {
       activeIndex: -1,
@@ -68,28 +68,6 @@ export default {
     }
   },
   methods: {
-    fileIcons(type) {
-      switch (type) {
-        case "floder":
-          return "icon-wenjianjia"
-          break
-        case "jpg":
-        case "png":
-        case "gif":
-        case "webp":
-        case "bmp":
-          return "icon-tupian"
-          break
-        case "mp4":
-        case "rmvb":
-        case "avi":
-        case "wmv":
-          return "icon-video"
-          break
-        default:
-          return "icon-wenjian"
-      }
-    },
     gotoFolder(path) {
       path++
       let newPath = ""
@@ -243,7 +221,7 @@ export default {
   min-height: 190px;
 }
 
-.file-directory .file-list.loading{
+.file-directory .file-list.loading {
   opacity: 0.5;
   pointer-events: none;
 }

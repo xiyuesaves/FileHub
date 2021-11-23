@@ -1,13 +1,13 @@
 <template>
   <div @scroll="fileListScroll" id="app">
     <!-- 文件预览 -->
-    <popUps :isOpen="showPreviewFile" @changeSelectFile="changeSelectFile" :maskContent="previewFile" :filePath="filePath" :fileLists="fileList" :selectFile="selectFile" :closeMask="closePreviewFile" />
+    <popUps :isOpen="showPreviewFile" @changeSelectFile="changeSelectFile" :maskContent="previewFile" :filePath="filePath" :fileLists="fileList" :selectFile="selectFile" :fileIcons="fileIcons" :closeMask="closePreviewFile" />
     <!-- 报错提醒 -->
     <warning :showWarn="showWarn" />
     <div class="main-view">
       <topTitle :title="title" />
-      <actionBar :driveList="driveList" :selectDrive="selectDrive" :switchDirectory="switchDirectory" :createFolder="createFolder" :createFile="createFile" />
-      <fileDirectory ref="fileDirectory" :isLoad="loadFileList" :filePath="filePath" :fileList="fileList" :openFile="openFile" :getFileList="getFileList" />
+      <actionBar :selectDrive="selectDrive" :rootList="rootList" :switchDirectory="switchDirectory" :createFolder="createFolder" :createFile="createFile" />
+      <fileDirectory ref="fileDirectory" :fileIcons="fileIcons" :isLoad="loadFileList" :filePath="filePath" :fileList="fileList" :openFile="openFile" :getFileList="getFileList" />
     </div>
     <div class="tool-bar">
       <toolBar :statisticsList="fileList" :urlHref="url" />
@@ -24,7 +24,6 @@ import error from './components/error'
 import previewFile from './components/previewFile'
 import warning from './components/warning'
 
-
 var localhost = 'http://127.0.0.1:88'
 
 export default {
@@ -40,7 +39,7 @@ export default {
   data() {
     return {
       title: "测试页面", // 页面标题
-      driveList: [], // 文件列表
+      rootList: [], // 文件列表
       source: this.axios.CancelToken.source(),
       selectDrive: "--", // 选中根目录
       filePath: "加载中...", // 文件路径
@@ -70,10 +69,10 @@ export default {
     fileListScroll() {
       this.$refs.fileDirectory.handleScroll()
     },
-    switchDirectory(driveLetter) {
-      console.log("切换到", driveLetter)
-      this.selectDrive = driveLetter
-      this.getFileList(driveLetter)
+    switchDirectory(rootPath) {
+      console.log("切换到", rootPath)
+      this.selectDrive = rootPath
+      this.getFileList(rootPath)
     },
     createFile() {
       console.log("在此处创建文件", this.filePath)
@@ -81,17 +80,17 @@ export default {
     createFolder() {
       console.log("在此处创建文件夹", this.filePath)
     },
-    getRootList() {
-      this.axios.get(`${localhost}/getDriveList`).then(res => {
+    getrootList() {
+      this.axios.get(`${localhost}/getrootList`).then(res => {
         console.log("已获取根目录", res)
         if (res.data.status == 'success') {
-          this.driveList = res.data.data
+          this.rootList = res.data.data
           if (this.urlPath.includes(':/')) { // 判断根目录是否有效
             let urlLetter = `${this.urlPath.split(":/")[0]}:/`,
               inLoad = false
             history.replaceState({ lastPath: this.url }, "", encodeURI(this.url))
-            for (var i = 0; i < this.driveList.length; i++) {
-              if (this.driveList[i].driveLetter === urlLetter) {
+            for (var i = 0; i < this.rootList.length; i++) {
+              if (this.rootList[i].rootPath === urlLetter) {
                 this.selectDrive = urlLetter
                 this.filePath = this.urlPath
                 this.getFileList(this.filePath, () => {
@@ -107,16 +106,16 @@ export default {
               }
             }
             if (!inLoad) {
-              this.selectDrive = this.driveList[0].driveLetter
+              this.selectDrive = this.rootList[0].rootPath
               this.getFileList(this.selectDrive)
             }
           } else {
-            this.selectDrive = this.driveList[0].driveLetter
+            this.selectDrive = this.rootList[0].rootPath
             this.getFileList(this.selectDrive)
           }
         } else {
           console.log("重新获取")
-          setTimeout(this.getRootList, 1500)
+          setTimeout(this.getrootList, 1500)
         }
       })
     },
@@ -244,10 +243,32 @@ export default {
       } else if (viewFile.get("view") !== null) {
         history.pushState({ lastPath: window.location.href }, "", `${window.location.origin}${window.location.pathname}`)
       }
+    },
+    fileIcons(type) {
+      switch (type) {
+        case "floder":
+          return "icon-wenjianjia"
+          break
+        case "jpg":
+        case "png":
+        case "gif":
+        case "webp":
+        case "bmp":
+          return "icon-tupian"
+          break
+        case "mp4":
+        case "rmvb":
+        case "avi":
+        case "wmv":
+          return "icon-video"
+          break
+        default:
+          return "icon-wenjian"
+      }
     }
   },
   mounted() {
-    this.getRootList() // 获取根目录
+    this.getrootList() // 获取根目录
     window.addEventListener("scroll", this.fileListScroll, true) // 监听全局滚动事件
     window.addEventListener('popstate', (event) => { // 监听浏览器前进返回事件
       this.urlPath = decodeURI(window.location.pathname.substring(1)) // 获取文件路径

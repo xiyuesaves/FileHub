@@ -4,19 +4,21 @@ const fs = require('fs');
 const app = express();
 const cors = require("cors");
 
+const diskList = [
+  { rootPath: "C:/" },
+  { rootPath: "D:/" }
+]
 
-let diskList = []
-diskinfo.getDrives(function(err, aDrives) {
-  for (var i = 0; i < aDrives.length; i++) {
-    diskList.push({
-      name: aDrives[i].filesystem,
-      driveLetter: aDrives[i].mounted + "/"
-    })
-  }
-})
+// diskinfo.getDrives(function(err, aDrives) {
+//   for (var i = 0; i < aDrives.length; i++) {
+//     diskList.push({
+//       rootPath: aDrives[i].mounted
+//     })
+//   }
+// })
 app.use(cors());
 
-app.get('/getDriveList', function(req, res) {
+app.get('/getRootList', function(req, res) {
   if (diskList.length) {
     res.json({
       status: "success",
@@ -64,11 +66,32 @@ app.get('/path/*', function(req, res) {
   }
 });
 
-app.use("/raw/C:/",express.static('C:/'));
-app.use("/raw/D:/",express.static('D:/'));
 
-app.use("/static",express.static('dist/static'));
-app.use("/*",express.static('dist'));
+
+// app.get('/raw/D:/*', function(req, res, next) {
+  // 实现文件下载 
+  // console.log("请求到下载接口", req.params)
+  // var fileName = req.params.fileName;
+  // var filePath = path.join(__dirname, fileName);
+  // var stats = fs.statSync(filePath); 
+  // if(stats.isFile()){
+  //   res.set({
+  //     'Content-Type': 'application/octet-stream',
+  //     'Content-Disposition': 'attachment; filename='+fileName,
+  //     'Content-Length': stats.size
+  //   });
+  //   fs.createReadStream(filePath).pipe(res);
+  // } else {
+  //   res.end(404);
+  // }
+// });
+
+// app.use("/raw/C:/",express.static('C:/'));
+
+// app.use("/raw/D:/",express.static('D:/'));
+
+app.use("/static", express.static('dist/static'));
+app.use("/*", express.static('dist'));
 
 
 function getFileType(fileName) {

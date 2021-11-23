@@ -3,10 +3,10 @@
   <div class="action-bar">
     <div class="float-left">
       <!-- 选择根目录按钮 -->
-      <menuButton icon="icon-cipanbaohu" :showText="selectDrive" arrow="true" :menuContent="selectDirectory" :selectDrive="selectDrive" :driveList="driveList" v-bind="$attrs"/>
+      <menuButton icon="icon-cipanbaohu" :showText="selectDrive" arrow="true" :menuContent="selectDirectory" :selectDrive="selectDrive" :rootList="rootList" v-bind="$attrs"/>
       <div class="drive-number">
         <span class="iconfont icon-cipanbaohu"></span>
-        <span class="view-text">{{driveList.length}}</span>
+        <span class="view-text">{{rootList.length}}</span>
         <!-- <span class="norm-text">目录</span> -->
       </div>
     </div>
@@ -23,7 +23,7 @@ import selectDirectory from "./selectDirectory"
 import createMenu from "./createMenu"
 export default {
   name: "actionBar",
-  props: ["driveList", "selectDrive"],
+  props: ["rootList", "selectDrive"],
   data() {
     return {
       selectDirectory: selectDirectory,

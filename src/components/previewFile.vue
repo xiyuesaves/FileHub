@@ -9,8 +9,11 @@
     </div>
     <div class="content">
       <div class="preview-view">
-        <download :selectFile="selectFile" />
-        
+
+        <download v-if="fileIcons(selectFile ? selectFile.split('.')[1] : '') === 'icon-wenjian'" :selectFile="selectFile" />
+        <images v-if="fileIcons(selectFile ? selectFile.split('.')[1] : '') === 'icon-tupian'" :selectFile="selectFile" />
+
+
       </div>
       <div class="right-item">
         <div ref="fileListEl" @scroll="handleScroll" class="scroll-file-list">
@@ -32,6 +35,7 @@
 <script>
 
 import download from "./download"
+import images from "./image"
 
 export default {
   props: ["closeMask", "filePath", "fileLists", "selectFile", "fileIcons"],
@@ -115,7 +119,8 @@ export default {
     }
   },
   components:{
-    download
+    download,
+    images
   },
   watch: {
     fileLists() {
@@ -211,7 +216,7 @@ export default {
 .content .right-item {
   box-sizing: border-box;
   height: 100%;
-  min-width: 296px;
+  width: 296px;
   /*padding: 16px;*/
   overflow: hidden;
   border-left: solid 1px #d5d8da;
