@@ -6,7 +6,7 @@ export default {
   props: ["closeMenu", "url", "isOpen"],
   data(){
   	return{
-  		text:"复制中"
+  		text:""
   	}
   },
   watch: {
@@ -36,3 +36,4 @@ p {
   text-align: center;
 }
 </style>
+
