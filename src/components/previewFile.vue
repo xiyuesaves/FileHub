@@ -9,12 +9,9 @@
     </div>
     <div class="content">
       <div class="preview-view">
-
-        <download v-if="fileIcons(selectFile ? selectFile.split('.')[1] : '') === 'icon-wenjian'" :selectFile="selectFile" />
-        <images v-if="fileIcons(selectFile ? selectFile.split('.')[1] : '') === 'icon-tupian'" :selectFile="selectFile" />
-        <!-- <text v-if="fileIcons(selectFile ? selectFile.split('.')[1] : '') === 'icon-text'" :selectFile="selectFile" /> -->
-
-
+        <download v-if="showPreviewPage(selectFile ? selectFile.split('.').pop() : '') === 'defaultFile'" :selectFile="selectFile" />
+        <images v-if="showPreviewPage(selectFile ? selectFile.split('.').pop() : '') === 'image'" :selectFile="selectFile" />
+        <viewText v-if="showPreviewPage(selectFile ? selectFile.split('.').pop() : '') === 'text'" :selectFile="selectFile" />
       </div>
       <div class="right-item">
         <div ref="fileListEl" @scroll="handleScroll" class="scroll-file-list">
@@ -34,12 +31,17 @@
   </div>
 </template>
 <script>
-
 import download from "./download"
 import images from "./image"
+import viewText from "./viewText"
 
 export default {
   props: ["closeMask", "filePath", "fileLists", "selectFile", "fileIcons"],
+  components: {
+    download,
+    images,
+    viewText
+  },
   data() {
     return {
       isFullSize: false,
@@ -100,11 +102,41 @@ export default {
           break
         }
       }
+    },
+    showPreviewPage(fileName) {
+      switch (fileName) {
+        case "jpg":
+        case "png":
+        case "gif":
+        case "webp":
+        case "bmp":
+          return "image" // 图片
+          break
+        case "mp4":
+        case "avi":
+          return "video" // 视频
+          break
+        case "txt":
+        case "log":
+        case "ini":
+        case "js":
+        case "ts":
+        case "c":
+        case "cpp":
+        case "h":
+        case "json":
+        case "conf":
+        case "html":
+        case "css":
+        case "bat":
+        case "cmd":
+        case "xml":
+          return "text" // 可编辑文本图标
+          break
+        default:
+          return "defaultFile" // 默认文件图标
+      }
     }
-  },
-  components:{
-    download,
-    images
   },
   watch: {
     fileLists() {
@@ -176,11 +208,11 @@ export default {
   box-sizing: border-box;
   width: calc(100% - 295px);
   height: 100%;
-  padding: 16px;
+  /*padding: 16px;*/
   position: relative;
 }
 
-.content .loading-view{
+.content .loading-view {
   position: absolute;
   width: 100%;
   font-size: 32px;

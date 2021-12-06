@@ -8,6 +8,7 @@ import axios from 'axios'
 import VueAxios from 'vue-axios'
 
 import './assets/iconfont.css'
+import 'highlight.js/styles/github.css'
 
 Vue.use(VueAxios,axios);
 
@@ -21,3 +22,4 @@ new Vue({
   components: { App },
   template: '<App/>'
 })
+

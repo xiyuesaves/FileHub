@@ -272,6 +272,11 @@ export default {
         case "h":
         case "json":
         case "conf":
+        case "html":
+        case "css":
+        case "bat":
+        case "xml":
+        case "cmd":
           return "icon-24gl-fileText" // 可编辑文本图标
           break
         default:
