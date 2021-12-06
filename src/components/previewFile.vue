@@ -12,6 +12,7 @@
 
         <download v-if="fileIcons(selectFile ? selectFile.split('.')[1] : '') === 'icon-wenjian'" :selectFile="selectFile" />
         <images v-if="fileIcons(selectFile ? selectFile.split('.')[1] : '') === 'icon-tupian'" :selectFile="selectFile" />
+        <!-- <text v-if="fileIcons(selectFile ? selectFile.split('.')[1] : '') === 'icon-text'" :selectFile="selectFile" /> -->
 
 
       </div>
@@ -99,23 +100,6 @@ export default {
           break
         }
       }
-    },
-    newCancelToken() {
-      this.source = this.axios.CancelToken.source()
-      return this.source.token
-    },
-    getView() {
-      // console.log("获取文件预览",this.selectFile)
-      // if (this.loadingView) {
-      //   this.source.cancel('结束上一次请求');
-      // }
-      // this.loadingView = true
-      // this.axios.post(`${localhost}/getFile/${encodeURI(this.filePath)}/${encodeURI(this.selectFile)}`,{
-      //   cancelToken: this.newCancelToken()
-      // }).then(res => {
-      //   console.log("请求完成")
-      //   this.loadingView = false
-      // })
     }
   },
   components:{
@@ -129,9 +113,6 @@ export default {
     },
     selectFile() {
       this.scrollToFile()
-      if (this.selectFile) {
-        this.getView()
-      }
     }
   },
   mounted() {

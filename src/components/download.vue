@@ -10,9 +10,7 @@ import menuButton from "./menuButton"
 export default {
   props: ["selectFile"],
   data() {
-    return {
-
-    }
+    return {}
   },
   components: {
     menuButton

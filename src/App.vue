@@ -247,23 +247,35 @@ export default {
     fileIcons(type) {
       switch (type) {
         case "floder":
-          return "icon-wenjianjia"
+          return "icon-wenjianjia" // 文件夹图标
           break
         case "jpg":
         case "png":
         case "gif":
         case "webp":
         case "bmp":
-          return "icon-tupian"
+          return "icon-tupian" // 图片图标
           break
         case "mp4":
         case "rmvb":
         case "avi":
         case "wmv":
-          return "icon-video"
+          return "icon-video" // 视频图标
+          break
+        case "txt":
+        case "log":
+        case "ini":
+        case "js":
+        case "ts":
+        case "c":
+        case "cpp":
+        case "h":
+        case "json":
+        case "conf":
+          return "icon-24gl-fileText" // 可编辑文本图标
           break
         default:
-          return "icon-wenjian"
+          return "icon-wenjian" // 默认文件图标
       }
     }
   },
