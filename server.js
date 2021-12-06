@@ -1,6 +1,6 @@
 const express = require("express");
-const diskinfo = require('diskinfo');
 const fs = require('fs');
+const path = require('path');
 const app = express();
 const cors = require("cors");
 
@@ -9,16 +9,10 @@ const diskList = [
   { rootPath: "D:/" }
 ]
 
-// diskinfo.getDrives(function(err, aDrives) {
-//   for (var i = 0; i < aDrives.length; i++) {
-//     diskList.push({
-//       rootPath: aDrives[i].mounted
-//     })
-//   }
-// })
 app.use(cors());
 
 app.get('/getRootList', function(req, res) {
+  console.log("请求根目录")
   if (diskList.length) {
     res.json({
       status: "success",
@@ -30,6 +24,7 @@ app.get('/getRootList', function(req, res) {
     })
   }
 });
+
 app.get('/path/*', function(req, res) {
   let path = decodeURI(req.url.replace('/path/', ''))
   console.log("获取路径", path)
@@ -66,33 +61,26 @@ app.get('/path/*', function(req, res) {
   }
 });
 
-
-
-// app.get('/raw/D:/*', function(req, res, next) {
+app.get('/raw/*', function(req, res, next) {
   // 实现文件下载 
-  // console.log("请求到下载接口", req.params)
-  // var fileName = req.params.fileName;
-  // var filePath = path.join(__dirname, fileName);
-  // var stats = fs.statSync(filePath); 
-  // if(stats.isFile()){
-  //   res.set({
-  //     'Content-Type': 'application/octet-stream',
-  //     'Content-Disposition': 'attachment; filename='+fileName,
-  //     'Content-Length': stats.size
-  //   });
-  //   fs.createReadStream(filePath).pipe(res);
-  // } else {
-  //   res.end(404);
-  // }
-// });
-
-// app.use("/raw/C:/",express.static('C:/'));
-
-// app.use("/raw/D:/",express.static('D:/'));
+  let filePath = path.join(decodeURI(req.url.replace("/raw/","")))
+  let stats = fs.statSync(filePath);
+  let fileName = req.url.split("/").pop();
+  console.log("请求到下载接口",filePath,fileName)
+  if(stats.isFile()){
+    res.set({
+      'Content-Type': 'application/octet-stream',
+      'Content-Disposition': 'attachment; filename='+fileName,
+      'Content-Length': stats.size
+    });
+    fs.createReadStream(filePath).pipe(res);
+  } else {
+    res.end(404);
+  }
+});
 
 app.use("/static", express.static('dist/static'));
 app.use("/*", express.static('dist'));
-
 
 function getFileType(fileName) {
   let suffix = fileName.split(".")

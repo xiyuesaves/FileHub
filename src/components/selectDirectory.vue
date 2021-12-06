@@ -8,11 +8,11 @@
     <div class="menu-content">
       <div class="drive-list">
         <!-- 循环输出磁盘列表 -->
-        <div v-for="(drive,index) in driveList" class="drive-item" :key="drive.driveLetter" @click.stop="selectedDisk(drive.driveLetter)">
-          <span :class="['iconfont','icon-gougou',drive.driveLetter == selectDrive ? '' : 'hide']"></span>
+        <div v-for="(drive,index) in rootList" class="drive-item" :key="drive.rootPath" @click.stop="selectedDisk(drive.rootPath)">
+          <span :class="['iconfont','icon-gougou',drive.rootPath == selectDrive ? '' : 'hide']"></span>
           <span :title="drive.name" class="view-text drive-name">
             <!-- {{drive.name}} -->
-            {{drive.driveLetter}}
+            {{drive.rootPath}}
           </span>
           <!-- <span class="drive-letter view-text">
           </span> -->
@@ -23,7 +23,7 @@
 </template>
 <script>
 export default {
-  props: ["driveList", "selectDrive", "switchDirectory", "closeMenu"],
+  props: ["rootList", "selectDrive", "switchDirectory", "closeMenu"],
   data() {
     return {}
   },
