@@ -1,5 +1,5 @@
 <template>
-  <pre v-html="showText" class="text-view">
+  <pre v-text="showText" class="text-view">
   </pre>
 </template>
 <script>
@@ -19,7 +19,6 @@ export default {
             return res;
         }}).then(res => {
         this.showText = res.data
-        // hljs.highlightAuto(res.data).value
       })
     }
   },
@@ -38,10 +37,32 @@ export default {
 	.text-view{
 		font-family: "Consolas","微软雅黑";
 		font-size: 16px;
-		padding: 0;
+    box-sizing: border-box;
+    line-height: 22px;
+		padding: 8px;
 		margin: 0;
 		width: 100%;
 		height: 100%;
 		overflow: auto;
 	}
+  .text-view::-webkit-scrollbar-button{
+    display: none;
+  }
+  .text-view::-webkit-scrollbar-corner,
+  .text-view::-webkit-scrollbar{
+    width: 7px;
+    height: 7px;
+    background-color: #f1f1f1;
+  }
+  .text-view:hover:-webkit-scrollbar{
+    width: 8px;
+  }
+  .text-view::-webkit-scrollbar-thumb{
+    background-color: #d7dadd;
+  }
+  /*.text-view::-webkit-scrollbar-corner,
+  .text-view::-webkit-scrollbar-track-piece{
+    background-color: #dddddd;
+  }*/
+
 </style>
