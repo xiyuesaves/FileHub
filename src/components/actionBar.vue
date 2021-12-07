@@ -11,7 +11,7 @@
       </div>
     </div>
     <div class="float-right">
-      <menuButton showText="编辑" :clickFun="edit" v-bind="$attrs"/>
+      <!-- <menuButton showText="编辑" :clickFun="edit" v-bind="$attrs"/> -->
       <menuButton showText="创建" arrow="true" :menuContent="createMenu" align="right" v-bind="$attrs"/>
       <menuButton showText="上传" btnClass="btn-green" :clickFun="upload" v-bind="$attrs"/>
     </div>
