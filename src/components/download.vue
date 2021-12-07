@@ -1,6 +1,6 @@
 <template>
   <div class="download">
-    <span class="iconfont file-icon icon-wenjian"></span>
+    <span :class="['iconfont','file-icon',fileIcons(selectFile.split('.').pop())]"></span>
     <p class="selFile">{{selectFile}}</p>
     <menuButton title="下载该文件" showText="下载" :clickFun="downloadThisFile" />
   </div>
@@ -8,7 +8,7 @@
 <script>
 import menuButton from "./menuButton"
 export default {
-  props: ["selectFile"],
+  props: ["selectFile","fileIcons"],
   data() {
     return {}
   },
