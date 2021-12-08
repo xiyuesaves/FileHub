@@ -1,13 +1,13 @@
 <template>
   <div @scroll="fileListScroll" id="app">
     <!-- 文件预览 -->
-    <popUps :isOpen="showPreviewFile" @changeSelectFile="changeSelectFile" :maskContent="previewFile" :filePath="filePath" :fileLists="fileList" :selectFile="selectFile" :fileIcons="fileIcons" :closeMask="closePreviewFile" />
+    <popUps :formatSize="formatSize" :isOpen="showPreviewFile" @changeSelectFile="changeSelectFile" :maskContent="previewFile" :filePath="filePath" :fileLists="fileList" :selectFile="selectFile" :fileIcons="fileIcons" :closeMask="closePreviewFile" />
     <!-- 报错提醒 -->
     <warning :showWarn="showWarn" />
     <div class="main-view">
       <topTitle :title="title" />
       <actionBar :selectDrive="selectDrive" :rootList="rootList" :switchDirectory="switchDirectory" :createFolder="createFolder" :createFile="createFile" />
-      <fileDirectory ref="fileDirectory" :fileIcons="fileIcons" :isLoad="loadFileList" :filePath="filePath" :fileList="fileList" :openFile="openFile" :getFileList="getFileList" />
+      <fileDirectory ref="fileDirectory" :formatSize="formatSize" :formatDate="formatDate" :fileIcons="fileIcons" :isLoad="loadFileList" :filePath="filePath" :fileList="fileList" :openFile="openFile" :getFileList="getFileList" />
     </div>
     <div class="tool-bar">
       <toolBar :statisticsList="fileList" :urlHref="url" />
@@ -41,7 +41,7 @@ export default {
       source: this.axios.CancelToken.source(),
       selectDrive: "--", // 选中根目录
       filePath: "加载中...", // 文件路径
-      localhost: 'http://127.0.0.1:88', // 后台地址
+      localhost: 'http://192.168.0.101:88', // 后台地址
       fileList: [], // 文件列表
       loadFileList: false,
       url: decodeURI(window.location.href),
@@ -289,7 +289,26 @@ export default {
         default:
           return "icon-wenjian" // 默认文件图标
       }
-    }
+    },
+    formatSize(bytes) { // 格式化文件大小
+      if (bytes === 0) return '0 B';
+      let k = 1024,
+        sizes = ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'],
+        i = Math.floor(Math.log(bytes) / Math.log(k));
+      if (!sizes[i]) {
+        return "未知大小"
+      }
+      return (bytes / Math.pow(k, i)).toPrecision(3) + ' ' + sizes[i];
+    },
+    formatDate(time) { // 格式化时间
+      let date = new Date(time);
+      return `${date.getFullYear()}/${fullZero(date.getMonth()+1)}/${fullZero(date.getDay())} ${fullZero(date.getHours())}:${fullZero(date.getMinutes())}:${fullZero(date.getSeconds())}`
+
+      function fullZero(num) {
+        let str = "00" + num
+        return str.slice(-2)
+      }
+    },
   },
   mounted() {
     this.getrootList() // 获取根目录
