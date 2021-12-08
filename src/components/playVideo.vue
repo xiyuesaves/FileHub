@@ -8,17 +8,17 @@ export default {
   props: ["selectFile", "localhost", "showPreviewPage"],
   data() {
     return {
-      srcLink: `${this.localhost}/raw${window.location.pathname}${this.selectFile}`
+      srcLink: `${this.localhost}/video${window.location.pathname}${this.selectFile}`
     }
   },
   methods: {},
   watch: {
     selectFile() {
-      this.srcLink = `${this.localhost}/raw${window.location.pathname}${this.selectFile}`
+      this.srcLink = `${this.localhost}/video${window.location.pathname}${this.selectFile}`
     }
   },
   mounted() {
-    this.srcLink = `${this.localhost}/raw${window.location.pathname}${this.selectFile}`
+    this.srcLink = `${this.localhost}/video${window.location.pathname}${this.selectFile}`
   }
 }
 

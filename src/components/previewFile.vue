@@ -24,6 +24,9 @@
                 <span :title="file.name" class="file-name">
                   {{file.name}}
                 </span>
+                <span :title="`${file.size} Byte`" class="file-size">
+                  {{formatSize(file.size)}}
+                </span>
                 <menuButton :clickFun="downloadThisFile" :title="`下载${file.name}`" icon="icon-xiazai" />
               </div>
             </div>
@@ -41,7 +44,7 @@ import playVideo from "./playVideo"
 import menuButton from "./menuButton"
 
 export default {
-  props: ["closeMask", "filePath", "fileLists", "selectFile", "fileIcons"],
+  props: ["closeMask", "filePath", "fileLists", "selectFile", "fileIcons", "formatSize"],
   components: {
     download,
     images,
@@ -68,7 +71,7 @@ export default {
   methods: {
     downloadThisFile() {
       let tempa = document.createElement("a")
-      tempa.href = `${this.localhost}/raw${window.location.pathname}${this.selectFile}`
+      tempa.href = `${this.localhost}/download${window.location.pathname}${this.selectFile}`
       tempa.style.display = `none`
       tempa.setAttribute("download", "")
       document.body.appendChild(tempa)
@@ -156,7 +159,6 @@ export default {
           return "text" // 可编辑文本图标
           break
         case "mp4":
-        case "mpeg":
           return "video" // 视频
           break
         default:
@@ -429,13 +431,15 @@ export default {
 }
 
 .file-item .file-detail .file-name {
-  width: calc(100% - 28px);
+  width: calc(100% - 28px - 60px);
 }
 
 .file-item .file-detail .file-size {
-  width: 90px;
+  width: 55px;
+  font-size: 12px;
   text-align: right;
-  color: #666666;
+  color: #999999;
+  margin-right: 8px;
 }
 
 .file-item .file-detail .file-date {
@@ -443,7 +447,7 @@ export default {
   padding-left: 8px;
   text-align: right;
   box-sizing: border-box;
-  color: #666666;
+  color: #999999;
 }
 
 @media (max-width: 820px) {
