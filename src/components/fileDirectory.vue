@@ -25,7 +25,7 @@
           <span :title="file.size+' Byte'" class="file-size">
             {{file.type !== "floder" ? formatSize(file.size) : ""}}
           </span>
-          <span :title="formatDate(file.date)" class="file-date">
+          <span :title="new Date(file.date)" class="file-date">
             {{formatDate(file.date)}}
           </span>
         </div>
@@ -41,7 +41,7 @@
 <script>
 export default {
   name: "fileDirectory",
-  props: ["filePath", "fileList", "openFile", "getFileList", "isLoad", "fileIcons"],
+  props: ["filePath", "fileList", "openFile", "getFileList", "isLoad", "fileIcons","formatSize","formatDate"],
   data() {
     return {
       activeIndex: -1,
@@ -85,25 +85,6 @@ export default {
         Math.floor(scrollTop / this.itemH),
         Math.floor(scrollTop / this.itemH) + this.showNum
       )
-    },
-    formatSize(bytes) { // 格式化文件大小
-      if (bytes === 0) return '0 B';
-      let k = 1024,
-        sizes = ['B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'],
-        i = Math.floor(Math.log(bytes) / Math.log(k));
-      if (!sizes[i]) {
-        return "体积过大"
-      }
-      return (bytes / Math.pow(k, i)).toPrecision(3) + ' ' + sizes[i];
-    },
-    formatDate(time) { // 格式化时间
-      let date = new Date(time);
-      return `${date.getFullYear()}/${fullZero(date.getMonth()+1)}/${fullZero(date.getDay())} ${fullZero(date.getHours())}:${fullZero(date.getMinutes())}:${fullZero(date.getSeconds())}`
-
-      function fullZero(num) {
-        let str = "00" + num
-        return str.slice(-2)
-      }
     },
     updateScroll() { // 初始化滚动参数
       this.scrollH = this.fileList.length * this.itemH;
