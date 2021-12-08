@@ -24,8 +24,6 @@ import error from './components/error'
 import previewFile from './components/previewFile'
 import warning from './components/warning'
 
-var localhost = 'http://127.0.0.1:88'
-
 export default {
   name: 'App',
   components: {
@@ -43,6 +41,7 @@ export default {
       source: this.axios.CancelToken.source(),
       selectDrive: "--", // 选中根目录
       filePath: "加载中...", // 文件路径
+      localhost: 'http://127.0.0.1:88', // 后台地址
       fileList: [], // 文件列表
       loadFileList: false,
       url: decodeURI(window.location.href),
@@ -81,7 +80,7 @@ export default {
       console.log("在此处创建文件夹", this.filePath)
     },
     getrootList() {
-      this.axios.get(`${localhost}/getrootList`).then(res => {
+      this.axios.get(`${this.localhost}/getrootList`).then(res => {
         console.log("已获取根目录", res)
         if (res.data.status == 'success') {
           this.rootList = res.data.data
@@ -135,7 +134,7 @@ export default {
       }
     },
     showPreview(name) {
-      console.log("预览文件")
+      console.log("预览文件", name)
       this.showPreviewFile = true;
       this.selectFile = name;
     },
@@ -170,7 +169,7 @@ export default {
       // this.filePath = encode
       this.loadFileList = true
       console.log("获取路径内容", path)
-      this.axios.get(`${localhost}/path/${encode}`, {
+      this.axios.get(`${this.localhost}/path/${encode}`, {
         cancelToken: this.newCancelToken()
       }).then(res => {
         this.filePath = path
@@ -238,13 +237,20 @@ export default {
     closePreviewFile() { // 关闭预览窗口
       this.showPreviewFile = false;
       let viewFile = new URLSearchParams(decodeURI(window.location.search.substring(1)))
-      if (viewFile.get("view") == false) {
+      console.log(viewFile.get("view"))
+      if (viewFile.get("view") == null) {
+        console.log("关闭窗口_重写路径")
         history.replaceState({ lastPath: this.url }, "", `${window.location.origin}${window.location.pathname}`)
       } else if (viewFile.get("view") !== null) {
+        console.log("关闭窗口_新增路径")
+        // let goBack = this.$cookies.get("openFileDeep") ? this.$cookies.get("openFileDeep") : 1
+        // history.go(-goBack)
         history.pushState({ lastPath: window.location.href }, "", `${window.location.origin}${window.location.pathname}`)
       }
+      // this.$cookies.remove("openFileDeep")
     },
     fileIcons(type) {
+      type = type.toLocaleLowerCase()
       switch (type) {
         case "floder":
           return "icon-wenjianjia" // 文件夹图标
@@ -260,6 +266,7 @@ export default {
         case "rmvb":
         case "avi":
         case "wmv":
+        case "mpeg":
           return "icon-video" // 视频图标
           break
         case "txt":
@@ -296,6 +303,7 @@ export default {
       } else if (!this.showPreviewFile && this.selectFile) { // 如果有选中文件，则唤起预览窗口
         this.showPreview(this.selectFile)
       }
+      // 更新当前路径
       if (this.urlPath !== this.filePath) {
         this.getFileList(this.urlPath)
         let thisletter = `${this.urlPath.split(":/")[0]}:/`
