@@ -90,7 +90,11 @@ export default {
             return "#456268"
             break
           default:
-            return '#' + (Math.random() * 0xffffff << 0).toString(16);
+            let randNum = Math.random()
+            if (!randNum) {
+              randNum = 0.233333
+            }
+            return '#' + (randNum  * 0xffffff << 0).toString(16);
         }
       }
       this.sliders = statisticsData
@@ -152,7 +156,7 @@ export default {
   width: 8px;
   height: 8px;
   margin: 4px;
-  background-color: red;
+  /*background-color: red;*/
   border-radius: 4px;
 }
 
