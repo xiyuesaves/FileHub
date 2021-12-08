@@ -9,20 +9,22 @@
     </div>
     <div class="content">
       <div :class="['preview-view',{'hidenItem':!showItem}]">
-        <download v-if="showPreviewPage(selectFile ? selectFile.split('.').pop() : '') === 'defaultFile'" :selectFile="selectFile" />
+        <download :downloadThisFile="downloadThisFile" :fileIcons="fileIcons" v-if="showPreviewPage(selectFile ? selectFile.split('.').pop() : '') === 'defaultFile'" :selectFile="selectFile" />
         <images v-if="showPreviewPage(selectFile ? selectFile.split('.').pop() : '') === 'image'" :selectFile="selectFile" />
         <viewText v-if="showPreviewPage(selectFile ? selectFile.split('.').pop() : '') === 'text'" :selectFile="selectFile" />
+        <playVideo v-if="showPreviewPage(selectFile ? selectFile.split('.').pop() : '') === 'video'" :showPreviewPage="showPreviewPage" :localhost="localhost" :selectFile="selectFile" />
       </div>
-      <div :class="['right-item',{'hidenItem':!showItem}]">
+      <div v-on:keydown.enter="switchSelectFile" :class="['right-item',{'hidenItem':!showItem}]">
         <div class="hidden-item" :title="showItem ? '隐藏侧边栏' : '展开侧边栏'" @click="hidenRightItem"></div>
         <div ref="fileListEl" @scroll="handleScroll" class="scroll-file-list">
           <div :style="`height: ${scrollH}px;`" class="scroll-box">
-            <div @click="selectOther(file.name)" :style="`transform: translateY(${offsetY}px);`" v-for="(file,idnex) in realRender" v-if="file.type !== 'floder'" :class="['file-item',{'active':file.name === selectFile}]">
+            <div @mousedown="selectOther(file.name)" :style="`transform: translateY(${offsetY}px);`" v-for="(file,idnex) in realRender" v-if="file.type !== 'floder'" :class="['file-item',{'active':file.name === selectFile}]">
               <span :title="file.type" :class="['iconfont','file-icon', fileIcons(file.type)]"></span>
               <div class="file-detail">
                 <span :title="file.name" class="file-name">
                   {{file.name}}
                 </span>
+                <menuButton :clickFun="downloadThisFile" :title="`下载${file.name}`" icon="icon-xiazai" />
               </div>
             </div>
           </div>
@@ -35,13 +37,17 @@
 import download from "./download"
 import images from "./image"
 import viewText from "./viewText"
+import playVideo from "./playVideo"
+import menuButton from "./menuButton"
 
 export default {
   props: ["closeMask", "filePath", "fileLists", "selectFile", "fileIcons"],
   components: {
     download,
     images,
-    viewText
+    viewText,
+    playVideo,
+    menuButton
   },
   data() {
     return {
@@ -55,10 +61,23 @@ export default {
       showNum: 0,
       loadingView: true,
       source: this.axios.CancelToken.source(),
+      localhost: this.$parent.$parent.localhost,
       showItem: true
     }
   },
   methods: {
+    downloadThisFile() {
+      let tempa = document.createElement("a")
+      tempa.href = `${this.localhost}/raw${window.location.pathname}${this.selectFile}`
+      tempa.style.display = `none`
+      tempa.setAttribute("download", "")
+      document.body.appendChild(tempa)
+      tempa.click()
+      tempa.remove()
+    },
+    switchSelectFile(event) {
+      console.log(event)
+    },
     hidenRightItem() {
       console.log("隐藏侧边栏")
       this.showItem = !this.showItem
@@ -110,6 +129,7 @@ export default {
       }
     },
     showPreviewPage(fileName) {
+      fileName = fileName.toLocaleLowerCase()
       switch (fileName) {
         case "jpg":
         case "png":
@@ -117,10 +137,6 @@ export default {
         case "webp":
         case "bmp":
           return "image" // 图片
-          break
-        case "mp4":
-        case "avi":
-          return "video" // 视频
           break
         case "txt":
         case "log":
@@ -138,6 +154,10 @@ export default {
         case "cmd":
         case "xml":
           return "text" // 可编辑文本图标
+          break
+        case "mp4":
+        case "mpeg":
+          return "video" // 视频
           break
         default:
           return "defaultFile" // 默认文件图标
@@ -160,6 +180,18 @@ export default {
 
 </script>
 <style scoped>
+.button.only-icon {
+  padding: 0;
+  height: 28px;
+  width: 28px;
+  transition: opacity 300ms;
+  opacity: 0;
+}
+
+.file-item:hover .button.only-icon {
+  opacity: 1;
+}
+
 .file-item.active {
   background-color: #f6f8fa;
   color: #0969da;
@@ -214,12 +246,12 @@ export default {
   box-sizing: border-box;
   width: calc(100% - 295px);
   height: 100%;
-  /*padding: 16px;*/
   position: relative;
   transition: width 300ms;
+  overflow: hidden;
 }
 
-.content .preview-view.hidenItem{
+.content .preview-view.hidenItem {
   width: 100%;
 }
 
@@ -248,7 +280,7 @@ export default {
   transition: width 300ms;
 }
 
-.content .right-item.hidenItem{
+.content .right-item.hidenItem {
   width: 0px;
   border-left: none;
 }
@@ -257,6 +289,7 @@ export default {
   width: 100%;
   height: 100%;
   overflow-y: auto;
+  overflow-x: hidden;
 }
 
 .content .right-item .scroll-file-list::-webkit-scrollbar {
@@ -272,14 +305,15 @@ export default {
   background-color: #d7dadd;
 }
 
-.content .right-item.hidenItem .hidden-item{
-  /*opacity: 1;*/
+.content .right-item.hidenItem .hidden-item {
   pointer-events: auto;
   transform: rotateY(180deg);
   left: -10px;
+  transition: opacity 300ms 1s;
 }
 
-.content .right-item.hidenItem .hidden-item:hover{
+.content .right-item.hidenItem .hidden-item:hover {
+  transition: opacity 300ms 0s;
   opacity: 1;
 }
 
@@ -290,13 +324,13 @@ export default {
   top: calc(50% - 60px);
   left: 0;
   z-index: 10;
-  background-color: #f8f8f8;
+  /*background-color: #f8f8f8;*/
   cursor: pointer;
   opacity: 0;
   pointer-events: none;
   /*transform: rotateY(180deg);*/
   /*left: -10px;*/
-  transition: opacity 150ms;
+  transition: opacity 300ms;
 }
 
 .content .right-item:hover .hidden-item {
@@ -395,7 +429,7 @@ export default {
 }
 
 .file-item .file-detail .file-name {
-  width: 100%;
+  width: calc(100% - 28px);
 }
 
 .file-item .file-detail .file-size {
