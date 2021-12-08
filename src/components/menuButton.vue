@@ -124,12 +124,14 @@ export default {
   cursor: pointer;
   position: relative;
 }
-.button .view-text{
+
+.button .view-text {
   text-overflow: ellipsis;
   overflow: hidden;
   display: block;
   white-space: nowrap;
 }
+
 .button::before {
   content: "";
   display: block;
