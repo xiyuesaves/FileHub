@@ -79,7 +79,6 @@ app.get('/raw/*', function(req, res, next) {
     try {
       let stats = fs.statSync(filePath);
       let fileName = req.url.split("/").pop();
-      // console.log("请求元数据", filePath)
       if (stats.isFile()) {
         let range = req.headers.range
         // 判断是否是分段下载
@@ -125,16 +124,6 @@ app.get('/raw/*', function(req, res, next) {
 for (var i = 0; i < rootList.length; i++) {
   app.use(encodeURI(`/video/${rootList[i].rootPath.replace(/\/$/,"")}`), express.static(`${rootList[i].rootPath}`));
 }
-
-// app.use(`/raw/D:/Users`, express.static(`D:/Users/`));
-// app.get("*",(req,res,next)=>{
-//   console.log(req)
-//   next()
-// })
-// app.use(`/raw/D:`, express.static(`D:/`));
-
-// app.use("/static", express.static('dist/static'));
-// app.use("/*", express.static('dist'));
 
 function getFileType(fileName) {
   let suffix = fileName.split(".")
