@@ -76,17 +76,40 @@ app.get('/raw/*', function(req, res, next) {
   // 实现文件下载 
   let filePath = path.join(decodeURI(req.url.replace("/raw/", "")))
   if (authorizedRootDirectory(filePath)) {
-    let stats = fs.statSync(filePath);
-    let fileName = req.url.split("/").pop();
-    console.log("请求元数据", filePath, fileName)
-    if (stats.isFile()) {
-      res.set({
-        'Content-Type': 'application/octet-stream',
-        'Content-Disposition': 'attachment; filename=' + fileName,
-        'Content-Length': stats.size
-      });
-      fs.createReadStream(filePath).pipe(res);
-    } else {
+    try {
+      let stats = fs.statSync(filePath);
+      let fileName = req.url.split("/").pop();
+      // console.log("请求元数据", filePath)
+      if (stats.isFile()) {
+        let range = req.headers.range
+        // 判断是否是分段下载
+        if (range) {
+          let [, start, end] = range.match(/(\d*)-(\d*)/),
+            total = stats.size;
+          start = start ? parseInt(start) : 0;
+          end = end ? parseInt(end) : total - 1;
+          res.status(206);
+          res.set({
+            'Content-Type': 'application/octet-stream',
+            "Accept-Ranges": "bytes",
+            'Content-Range': `bytes ${start}-${end}/${total}`,
+            'Content-Length': stats.size
+          });
+          fs.createReadStream(filePath, { start, end }).pipe(res);
+        } else {
+          res.set({
+            'Content-Type': 'application/octet-stream',
+            'Content-Disposition': 'attachment; filename=' + fileName,
+            'Content-Length': stats.size
+          });
+          fs.createReadStream(filePath).pipe(res);
+        }
+      } else {
+        console.log("没有找到该文件")
+        res.status(404);
+        res.end();
+      }
+    } catch (err) {
       console.log("没有找到该文件")
       res.status(404);
       res.end();
@@ -98,8 +121,20 @@ app.get('/raw/*', function(req, res, next) {
   }
 });
 
-app.use("/static", express.static('dist/static'));
-app.use("/*", express.static('dist'));
+// 启用静态文件服务
+for (var i = 0; i < rootList.length; i++) {
+  app.use(encodeURI(`/video/${rootList[i].rootPath.replace(/\/$/,"")}`), express.static(`${rootList[i].rootPath}`));
+}
+
+// app.use(`/raw/D:/Users`, express.static(`D:/Users/`));
+// app.get("*",(req,res,next)=>{
+//   console.log(req)
+//   next()
+// })
+// app.use(`/raw/D:`, express.static(`D:/`));
+
+// app.use("/static", express.static('dist/static'));
+// app.use("/*", express.static('dist'));
 
 function getFileType(fileName) {
   let suffix = fileName.split(".")
@@ -111,7 +146,6 @@ app.listen(88);
 // 判断路径权限
 function authorizedRootDirectory(getPath) {
   for (var i = 0; i < rootList.length; i++) {
-    console.log(path.join(getPath.substr(0, rootList[i].rootPath.length)), path.join(rootList[i].rootPath))
     if (path.join(getPath.substr(0, rootList[i].rootPath.length)) === path.join(rootList[i].rootPath)) {
       return true;
     };
