@@ -228,8 +228,8 @@ export default {
 
 @media (max-width: 820px) {
   .file-directory .file-list {
-    max-height: calc(100vh - 180px);
-    overflow: auto;
+    /*max-height: calc(100vh - 180px);*/
+    /*overflow: auto;*/
   }
 }
 
