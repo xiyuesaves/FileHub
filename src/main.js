@@ -6,14 +6,16 @@ import VueClipboard from 'vue-clipboard2'
 import App from './App'
 import axios from 'axios'
 import VueAxios from 'vue-axios'
+import VueCookies from 'vue-cookies'
+import Video from 'video.js'
 
 import './assets/iconfont.css'
-import 'highlight.js/styles/github.css'
+import 'video.js/dist/video-js.css'
 
-Vue.use(VueAxios,axios);
-
-// Vue.use(VueResource)
-Vue.use(VueClipboard)
+Vue.prototype.$video = Video
+Vue.use(VueCookies);
+Vue.use(VueAxios, axios);
+Vue.use(VueClipboard);
 Vue.config.productionTip = false
 
 /* eslint-disable no-new */
@@ -22,4 +24,3 @@ new Vue({
   components: { App },
   template: '<App/>'
 })
-
