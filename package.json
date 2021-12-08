@@ -1,7 +1,7 @@
 {
-  "name": "test",
+  "name": "fileHub",
   "version": "1.0.0",
-  "description": "A Vue.js project",
+  "description": "github风格文件管理工具",
   "author": "xiyue <xiyuesaves@gmail.com>",
   "private": true,
   "scripts": {
@@ -14,7 +14,6 @@
     "axios": "^0.24.0",
     "cors": "^2.8.5",
     "express": "^4.17.1",
-    "pkg": "^5.4.1",
     "qrcode": "^1.4.4",
     "video.js": "^7.17.0",
     "vue": "^2.5.2",
@@ -24,6 +23,7 @@
   },
   "devDependencies": {
     "autoprefixer": "^7.1.2",
+    "pkg": "^5.4.1",
     "babel-core": "^6.22.1",
     "babel-helper-vue-jsx-merge-props": "^2.0.3",
     "babel-loader": "^7.1.1",
