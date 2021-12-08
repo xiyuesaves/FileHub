@@ -1,6 +1,6 @@
 <template>
   <div class="download">
-    <span :class="['iconfont','file-icon',fileIcons(selectFile.split('.').pop())]"></span>
+    <span :class="['iconfont','file-icon',fileIcons(selectFile ? selectFile.split('.').pop() : '')]"></span>
     <p class="selFile">{{selectFile}}</p>
     <menuButton title="下载该文件" showText="下载" :clickFun="downloadThisFile" />
   </div>
@@ -8,7 +8,7 @@
 <script>
 import menuButton from "./menuButton"
 export default {
-  props: ["selectFile","fileIcons"],
+  props: ["selectFile","fileIcons","downloadThisFile"],
   data() {
     return {}
   },
@@ -16,16 +16,7 @@ export default {
     menuButton
   },
   methods: {
-    downloadThisFile() {
-      let tempa = document.createElement("a")
-      // tempa.href = `${window.location.origin}/raw${window.location.pathname}${this.selectFile}`
-      tempa.href = `http://127.0.0.1:88/raw${window.location.pathname}${this.selectFile}`
-      tempa.style.display = `none`
-      tempa.setAttribute("download", "")
-      document.body.appendChild(tempa)
-      tempa.click()
-      tempa.remove()
-    }
+    
   }
 }
 
