@@ -72,9 +72,9 @@ app.get('/path/*', function(req, res) {
   }
 });
 
-app.get('/raw/*', function(req, res, next) {
+app.get('/download/*', function(req, res, next) {
   // 实现文件下载 
-  let filePath = path.join(decodeURI(req.url.replace("/raw/", "")))
+  let filePath = path.join(decodeURI(req.url.replace("/download/", "")))
   if (authorizedRootDirectory(filePath)) {
     try {
       let stats = fs.statSync(filePath);
@@ -120,9 +120,9 @@ app.get('/raw/*', function(req, res, next) {
   }
 });
 
-// 启用静态文件服务
+// 文件预览接口
 for (var i = 0; i < rootList.length; i++) {
-  app.use(encodeURI(`/video/${rootList[i].rootPath.replace(/\/$/,"")}`), express.static(`${rootList[i].rootPath}`));
+  app.use(encodeURI(`/raw/${rootList[i].rootPath.replace(/\/$/,"")}`), express.static(`${rootList[i].rootPath}`));
 }
 
 function getFileType(fileName) {
