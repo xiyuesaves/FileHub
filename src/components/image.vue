@@ -21,8 +21,9 @@ export default {
   display: flex;
   align-items: center;
   justify-content: center;
+  padding: 8px;
+  box-sizing: border-box;
 }
-
 
 img {
   max-width: 100%;
