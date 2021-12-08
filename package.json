@@ -14,12 +14,13 @@
     "axios": "^0.24.0",
     "cors": "^2.8.5",
     "express": "^4.17.1",
-    "highlight.js": "^11.3.1",
     "pkg": "^5.4.1",
     "qrcode": "^1.4.4",
+    "video.js": "^7.17.0",
     "vue": "^2.5.2",
     "vue-axios": "^3.4.0",
-    "vue-clipboard2": "^0.3.3"
+    "vue-clipboard2": "^0.3.3",
+    "vue-cookies": "^1.7.4"
   },
   "devDependencies": {
     "autoprefixer": "^7.1.2",
