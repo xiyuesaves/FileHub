@@ -178,6 +178,7 @@ export default {
         if (res.data.status === "success") {
           this.fileList = res.data.data
           console.log(this.urlPath, path)
+          window.scrollTo(0, 0) // 请求成功后滚动到页面顶部
           if (this.urlPath !== path) {
             if (!history.state) {
               console.log("重写当前地址")
@@ -247,6 +248,7 @@ export default {
         // history.go(-goBack)
         history.pushState({ lastPath: window.location.href }, "", `${window.location.origin}${window.location.pathname}`)
       }
+      this.selectFile = ""
       // this.$cookies.remove("openFileDeep")
     },
     fileIcons(type) {
@@ -336,6 +338,10 @@ export default {
 
 </script>
 <style>
+.icon-wenjianjia:before {
+  color: #54aeff;
+}
+
 @font-face {
   font-family: "iconfont";
   src: url('./assets/iconfont.ttf?t=7784654652') format('truetype');
