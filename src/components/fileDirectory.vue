@@ -41,7 +41,7 @@
 <script>
 export default {
   name: "fileDirectory",
-  props: ["filePath", "fileList", "openFile", "getFileList", "isLoad", "fileIcons","formatSize","formatDate"],
+  props: ["filePath", "fileList", "openFile", "getFileList", "isLoad", "fileIcons", "formatSize", "formatDate"],
   data() {
     return {
       activeIndex: -1,
@@ -211,6 +211,9 @@ export default {
   .file-directory .file-list {
     /*max-height: calc(100vh - 180px);*/
     /*overflow: auto;*/
+  }
+  .file-directory .file-list .file-item:hover {
+    background-color: #ffffff;
   }
 }
 

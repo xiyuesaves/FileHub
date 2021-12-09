@@ -102,6 +102,7 @@ export default {
       }
     },
     handleScroll(e) {
+      this.showNum = Math.floor(this.viewH / this.itemH) + 1;
       let scrollTop = e.target.scrollTop; // 滚去的高度
       let scrollVal = scrollTop - (scrollTop % this.itemH)
       this.offsetY = scrollVal;
@@ -112,7 +113,7 @@ export default {
     },
     initView() {
       this.scrollH = this.itemH * this.fileList.length;
-      this.showNum = Math.floor(this.viewH / this.itemH) + 4;
+      this.showNum = Math.floor(this.viewH / this.itemH) + 1;
       this.realRender = this.fileList.slice(0, this.showNum);
       setTimeout(() => {
         this.scrollToFile();
@@ -186,7 +187,6 @@ export default {
   padding: 0;
   height: 28px;
   width: 28px;
-  transition: opacity 300ms;
   opacity: 0;
 }
 
@@ -387,6 +387,7 @@ export default {
   width: 100%;
   height: 38px;
   padding: 8px 16px;
+  padding-right: 8px;
   border-bottom: solid 1px #d5d8da;
   box-sizing: border-box;
   display: flex;
@@ -416,7 +417,7 @@ export default {
   height: 100%;
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-start;
 }
 
 .file-item .file-detail span {
@@ -435,11 +436,11 @@ export default {
 }
 
 .file-item .file-detail .file-size {
-  width: 55px;
+  width: 50px;
   font-size: 12px;
   text-align: right;
   color: #999999;
-  margin-right: 8px;
+  margin-right: 10px;
 }
 
 .file-item .file-detail .file-date {
