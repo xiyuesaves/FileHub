@@ -300,7 +300,7 @@ export default {
       if (!sizes[i]) {
         return "未知大小"
       }
-      return (bytes / Math.pow(k, i)).toPrecision(3) + ' ' + sizes[i];
+      return parseInt((bytes / Math.pow(k, i)).toPrecision(3)) + ' ' + sizes[i];
     },
     formatDate(time) { // 格式化时间
       let date = new Date(time);
