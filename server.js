@@ -125,6 +125,9 @@ for (var i = 0; i < rootList.length; i++) {
   app.use(encodeURI(`/raw/${rootList[i].rootPath.replace(/\/$/,"")}`), express.static(`${rootList[i].rootPath}`));
 }
 
+app.use("/static", express.static('dist/static'));
+app.use("/*", express.static('dist'));
+
 function getFileType(fileName) {
   let suffix = fileName.split(".")
   suffix = suffix[suffix.length - 1]
