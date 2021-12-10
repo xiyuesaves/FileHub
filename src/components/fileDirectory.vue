@@ -15,11 +15,11 @@
       </div>
     </div>
     <div ref="fileListEl" :style="`height:${realViewH}px`" :class="['file-list',{loading:isLoad}]">
-      <div @click="openFile(file)" :style="`transform:translateY(${offsetY}px);`" v-for="(file,index) in realRender" :class="['file-item']">
+      <div @click="openFile(file)" @mouseenter="hoverFile = file.name" :style="`transform:translateY(${offsetY}px);`" v-for="(file,index) in realRender" :class="['file-item',{'hover-this':hoverFile == file.name}]">
         <span :title="file.type" :class="['iconfont','file-icon', fileIcons(file.type)]"></span>
         <div class="file-detail">
           <span :title="file.name" class="file-name">
-            {{file.name}}
+            <p class="hover-color">{{file.name}}</p>
           </span>
           <span></span>
           <span :title="file.size+' Byte'" class="file-size">
@@ -45,6 +45,7 @@ export default {
   data() {
     return {
       activeIndex: -1,
+      hoverFile: "",
       pathArr: this.filePath.split("/"),
       lastPath: "",
       realRender: [],
@@ -212,9 +213,10 @@ export default {
     /*max-height: calc(100vh - 180px);*/
     /*overflow: auto;*/
   }
-  .file-directory .file-list .file-item:hover {
+
+  /* .file-directory .file-list .file-item:hover {
     background-color: #ffffff;
-  }
+  }*/
 }
 
 .file-directory .file-list .file-item {
@@ -232,7 +234,11 @@ export default {
   margin-bottom: -1px;
 }
 
-.file-directory .file-list .file-item:hover {
+/*.file-directory .file-list .file-item:hover {
+  background-color: #f6f8fa;
+}*/
+
+.hover-this {
   background-color: #f6f8fa;
 }
 
@@ -265,6 +271,24 @@ export default {
 
 .file-directory .file-list .file-item .file-detail .file-name {
   width: 82%;
+}
+
+.file-directory .file-list .file-item .file-detail .file-name .hover-color {
+  margin: 0;
+  float: left;
+  cursor: pointer;
+  text-align: left;
+  display: block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  user-select: none;
+  max-width: 100%;
+}
+
+.file-directory .file-list .file-item .file-detail .file-name .hover-color:hover {
+  color: #0969da;
+  text-decoration: underline;
 }
 
 .file-directory .file-list .file-item .file-detail .file-size {

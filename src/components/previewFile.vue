@@ -13,21 +13,24 @@
         <images v-if="showPreviewPage(selectFile ? selectFile.split('.').pop() : '') === 'image'" :selectFile="selectFile" />
         <viewText v-if="showPreviewPage(selectFile ? selectFile.split('.').pop() : '') === 'text'" :selectFile="selectFile" />
         <playVideo v-if="showPreviewPage(selectFile ? selectFile.split('.').pop() : '') === 'video'" :showPreviewPage="showPreviewPage" :localhost="localhost" :selectFile="selectFile" />
+        <audioPlay v-if="showPreviewPage(selectFile ? selectFile.split('.').pop() : '') === 'music'" :localhost="localhost" :selectFile="selectFile" />
       </div>
       <div v-on:keydown.enter="switchSelectFile" :class="['right-item',{'hidenItem':!showItem}]">
         <div class="hidden-item" :title="showItem ? '隐藏侧边栏' : '展开侧边栏'" @click="hidenRightItem"></div>
-        <div ref="fileListEl" @scroll="handleScroll" class="scroll-file-list">
-          <div :style="`height: ${scrollH}px;`" class="scroll-box">
-            <div @mousedown="selectOther(file.name)" :style="`transform: translateY(${offsetY}px);`" v-for="(file,idnex) in realRender" v-if="file.type !== 'floder'" :class="['file-item',{'active':file.name === selectFile}]">
-              <span :title="file.type" :class="['iconfont','file-icon', fileIcons(file.type)]"></span>
-              <div class="file-detail">
-                <span :title="file.name" class="file-name">
-                  {{file.name}}
-                </span>
-                <span :title="`${file.size} Byte`" class="file-size">
-                  {{formatSize(file.size)}}
-                </span>
-                <menuButton :clickFun="downloadThisFile" :title="`下载${file.name}`" icon="icon-xiazai" />
+        <div class="right-item-content">
+          <div ref="fileListEl" @scroll="handleScroll" class="scroll-file-list">
+            <div :style="`height: ${scrollH}px;`" class="scroll-box">
+              <div @mousedown="selectOther(file.name)" :style="`transform: translateY(${offsetY}px);`" v-for="(file,idnex) in realRender" v-if="file.type !== 'floder'" :class="['file-item',{'active':file.name === selectFile}]">
+                <span :title="file.type" :class="['iconfont','file-icon', fileIcons(file.type)]"></span>
+                <div class="file-detail">
+                  <span :title="file.name" class="file-name">
+                    <p class="hover-color">{{file.name}}</p>
+                  </span>
+                  <span :title="`${file.size} Byte`" class="file-size">
+                    {{formatSize(file.size)}}
+                  </span>
+                  <menuButton :clickFun="downloadThisFile" :title="`下载${file.name}`" icon="icon-xiazai" />
+                </div>
               </div>
             </div>
           </div>
@@ -41,6 +44,7 @@ import download from "./download"
 import images from "./image"
 import viewText from "./viewText"
 import playVideo from "./playVideo"
+import audioPlay from "./audioPlay"
 import menuButton from "./menuButton"
 
 export default {
@@ -50,6 +54,7 @@ export default {
     images,
     viewText,
     playVideo,
+    audioPlay,
     menuButton
   },
   data() {
@@ -156,11 +161,17 @@ export default {
         case "css":
         case "bat":
         case "cmd":
+        case "ps1":
         case "xml":
+        case "md":
           return "text" // 可编辑文本图标
           break
         case "mp4":
           return "video" // 视频
+          break
+        case "mp3":
+        case "flac":
+          return "music" // 视频
           break
         default:
           return "defaultFile" // 默认文件图标
@@ -225,6 +236,7 @@ export default {
 
 .view-text {
   margin: 0;
+  user-select: none;
 }
 
 .iconfont {
@@ -275,11 +287,14 @@ export default {
   box-sizing: border-box;
   height: 100%;
   width: 296px;
-  /*padding: 16px;*/
-  /*overflow: hidden;*/
   position: relative;
   border-left: solid 1px #d5d8da;
   transition: width 300ms;
+}
+
+.content .right-item .right-item-content{
+  width: 296px;
+  height: 100%;
 }
 
 .content .right-item.hidenItem {
@@ -433,6 +448,24 @@ export default {
 
 .file-item .file-detail .file-name {
   width: calc(100% - 28px - 60px);
+}
+
+.file-item .file-detail .file-name .hover-color {
+  margin: 0;
+  float: left;
+  cursor: pointer;
+  text-align: left;
+  display: block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  user-select: none;
+  max-width: 100%;
+}
+
+.file-item .file-detail .file-name .hover-color:hover {
+  color: #0969da;
+  text-decoration: underline;
 }
 
 .file-item .file-detail .file-size {
