@@ -1,38 +1,49 @@
 <template>
   <div class="audio-player">
     <div class="main-box">
+      <!-- 唱片 -->
       <div class="turntable">
-        <!--  光碟信息 -->
         <div class="music-picture"></div>
-        <!-- 光影 -->
         <div class="shadow"></div>
-        <!-- 唱碟 -->
         <div class="disc" :style="`background-image: radial-gradient(#00000000 68%,#000000 68.1%,#000000 68.5%,rgb(60,60,60) 69%),radial-gradient(#000000 26%,${discTexture}#000000);`"></div>
-        <!-- 探针 -->
-        <div class="probe">
-          <div class="shaft">
-            <div class="probe-link">
-              <div class="bending">
-                <div class="pickup"></div>
-              </div>
-            </div>
+      </div>
+      <!-- 歌名 -->
+      <p :class="['music-name',{'scrollText':overflowText}]" ref="nameBox"><span ref="musicName">{{showMusicName}}</span></p>
+      <!-- 其他信息 -->
+      <p class="other-info">{{mediaInformation}}</p>
+      <!-- 播放控制器 -->
+      <div class="controls">
+        <button @click="pauseMusic" :class="['play-btn','iconfont',{'icon-24gf-pause2':isplayMusic},{'icon-24gf-play':!isplayMusic}]">
+        </button>
+        <div class="progress">
+          <div class="progress-bar">
+            <div class="inside-bar"></div>
           </div>
+          <div class="progress-control"></div>
         </div>
+        <span class="times">00:00/00:00</span>
       </div>
     </div>
   </div>
 </template>
 <script>
 export default {
-  props: ["selectFile"],
+  props: ["selectFile", "localhost"],
   data() {
     return {
-      discTexture: this.renders(80)
+      discTexture: this.initDisc(),
+      showMusicName: this.selectFile + "　　",
+      overflowText: false,
+      musicLink: `${this.localhost}/raw${window.location.pathname}${this.selectFile}`,
+      mediaInformation: "",
+      isplayMusic: true
     }
   },
   methods: {
-    renders(leve) {
-      let turntableColor = ""
+    initDisc() { // 生成随机碟片纹理
+      this.mediaInformation = ""
+      let turntableColor = "",
+        leve = 30
       for (var i = 0; i < leve; i++) {
         let randNum = Math.floor(90 * Math.random())
         if (randNum == 0 || randNum == 1) {
@@ -40,13 +51,58 @@ export default {
         }
         turntableColor += `#000000,rgb(${randNum},${randNum},${randNum}),`
       }
+      this.musicLink = `${this.localhost}/raw${window.location.pathname}${this.selectFile}`
+      this.getMusicInfo()
       return turntableColor
+    },
+    getMusicInfo() {
+      let infoLink = `${this.localhost}/info${window.location.pathname}${this.selectFile}`
+      console.log("发起请求")
+      this.axios({
+        methods: "get",
+        url: infoLink,
+      }).then((res) => {
+        let data = res.data.common
+        console.log("接收到专辑信息", data)
+        if (data.title) {
+          this.showMusicName = data.title
+        }
+        if (data.performerInfo) {
+          this.mediaInformation += `${data.performerInfo}`
+        }
+        if (data.artist && !data.performerInfo) {
+          this.mediaInformation += `${data.artist}`
+        }
+        this.scrollName()
+      }).catch((err) => {
+        console.log("请求专辑信息出错", err)
+      })
+    },
+    scrollName() {
+      this.overflowText = false
+      setTimeout(() => {
+        if (this.$refs.musicName.offsetWidth > this.$refs.nameBox.offsetWidth) {
+          this.showMusicName = this.selectFile + "　　" + this.selectFile + "　　"
+          this.overflowText = true
+        }
+      })
+    },
+    pauseMusic(){
+      this.isplayMusic = !this.isplayMusic
+      console.log("暂停")
     }
   },
   watch: {
-    selectFile() {
-      this.discTexture = this.renders(80)
+    selectFile(newName) {
+      this.discTexture = this.initDisc();
+      this.showMusicName = this.selectFile
+      // 名称超长判断
+      this.scrollName()
     }
+  },
+  mounted() {
+    this.showMusicName = this.selectFile
+    this.scrollName()
   }
 }
 
@@ -58,22 +114,31 @@ export default {
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-direction: column;
+  padding: 0 20px;
+  box-sizing: border-box;
 }
 
 .main-box {
-  width: 450px;
-  height: 450px;
+  max-width: 450px;
+  width: 100%;
+  height: 80px;
   box-sizing: border-box;
   position: relative;
-  padding: 25px;
+  border-radius: 6px;
+  border: solid 1px #d5d8da;
+  background-color: #ffffff;
 }
 
 .turntable {
-  position: relative;
-  width: 400px;
-  height: 400px;
+  width: 100px;
+  height: 100px;
   border-radius: 400px;
-  box-shadow: rgb(140 149 159 / 40%) 0px 4px 20px 10px;
+  position: absolute;
+  z-index: 20;
+  bottom: 12px;
+  left: 8px;
+  box-shadow: rgb(140 149 159 / 50%) 0px 4px 10px;
 }
 
 @keyframes rotate {
@@ -109,8 +174,8 @@ export default {
 }
 
 .music-picture {
-  width: 130px;
-  height: 130px;
+  width: 20px;
+  height: 20px;
   background-color: #F95342;
   border-radius: 100px;
   position: absolute;
@@ -130,11 +195,11 @@ export default {
   left: 50%;
   position: absolute;
   transform: translateY(-50%) translateX(-50%);
-  width: 15px;
-  height: 15px;
+  width: 4px;
+  height: 4px;
   border-radius: 10px;
   z-index: 10;
-  background-color: #000000;
+  background-color: #ffffff;
 }
 
 .shadow {
@@ -147,112 +212,137 @@ export default {
     conic-gradient(#000000 15%, #00000020 30%, #00000090 34%, #00000050 38%, #000000 45%, #000000 70%, #00000020 85%, #000000 100%);
 }
 
-.probe {
-  width: 100px;
-  height: 100px;
-  border-radius: 100px;
+.music-name {
   position: absolute;
-  top: -60px;
-  right: -90px;
-  z-index: 40;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  /*background-color: #383838;*/
-  /*border-right: solid 1px #828282;*/
-  /*border-left: solid 1px #111111;*/
-  box-sizing: border-box;
+  top: 6px;
+  width: calc(100% - 150px);
+  left: 110px;
+  margin: 0;
+  font-size: 16px;
+  text-shadow: 1px 1px 2px #dddddd;
+  white-space: nowrap;
+  overflow: hidden;
+  padding-left: 20px;
+  z-index: 10;
 }
 
-.shaft {
-  box-sizing: border-box;
-  width: 46px;
-  height: 46px;
-  border-radius: 46px;
-  position: relative;
-  transform: rotateZ(28deg);
+.scrollText span {
+  display: block;
+  float: left;
+  animation: scrollText 6s ease-in-out infinite;
 }
 
-.shaft::after {
+.scrollText::after {
   content: "";
-  display: flex;
-  width: 100%;
+  display: block;
+  width: 20px;
   height: 100%;
   position: absolute;
+  background-image: linear-gradient(to right, #00000000, #ffffff);
+  z-index: 10;
+  top: 0;
+  right: 0;
+}
+
+.scrollText::before {
+  content: "";
+  display: block;
+  width: 20px;
+  height: 100%;
+  position: absolute;
+  background-image: linear-gradient(to left, #00000000, #ffffff);
+  z-index: 10;
   top: 0;
   left: 0;
-  border-radius: 42px;
-  background-color: #444444;
-  transform: rotateZ(16deg);
-  /*border: solid 1px #999999;*/
-  box-sizing: border-box;
-  z-index: 10;
-  box-shadow: #00000040 0px 4px 15px;
 }
 
-.probe-link {
-  transform-origin: center 63px;
-  transform: rotateZ(0deg);
-  width: 10px;
-  height: 310px;
-  background-color: #444444;
+.other-info {
   position: absolute;
-  top: -40px;
-  left: calc(50% - 5px);
-  border-radius: 10px 0 3px 0;
-  box-shadow: #0000005f 0 0 8px;
+  top: 28px;
+  margin: 0;
+  font-size: 12px;
+  left: 130px;
+  color: #999999;
 }
 
-.bending {
-  width: 10px;
-  transform-origin: top left;
-  transform: rotateZ(17deg);
-  height: 50px;
-  background-color: #444444;
+.controls {
+  width: calc(100% - 135px);
+  height: 30px;
   position: absolute;
-  top: 99%;
-  left: 0;
-}
-
-.pickup {
-  width: 24px;
-  height: 38px;
-  background-color: #444444;
-  position: absolute;
-  top: 100%;
-  left: calc(50% - 12px);
-  border-radius: 6px;
-  box-shadow: #0000005f 0 0 8px;
-  position: relative;
+  top: 45px;
+  left: 130px;
   display: flex;
   align-items: center;
-  justify-content: space-around;
-  flex-direction: column;
+  justify-content: space-between;
+}
+
+.play-btn{
+  width: 16px;
+  height: 16px;
+  border: none;
+  background-color: #ffffff;
+  font-size: 15px;
+  color: #999999;
+  cursor: pointer;
+  text-align: center;
   box-sizing: border-box;
-  padding: 7px 0;
-  cursor: grab;
+  line-height: 20px;
+  transform: translateY(-2px);  
+  padding: 0;
+  transition: background-color 150ms;
 }
-
-.pickup:active {
-  cursor: grabbing;
+.play-btn:active{
+  color: #555555;
 }
-
-.pickup::before {
-  content: "";
-  display: block;
-  width: 16px;
-  height: 4px;
-  border-radius: 4px;
-  background-color: #666666;
+.progress{
+  width: calc(100% - 100px);
+  height: 3px;
+  position: relative;
 }
+.progress-bar{
+  width: 100%;
+  height: 100%;
+  background-color: #d5d8da;
+  overflow: hidden;
+}
+.inside-bar{
+  width: 100%;
+  height: 100%;
+  transform: translateX(-50%);
+  background-color: #f95342;
+}
+.progress-control{
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background-color: #ffffff;
+  border: solid 1px #d5d8da;
+  box-sizing: border-box;
+  position: absolute;
+  top: -5.5px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+.times{
+  font-size: 12px;
+  line-height: 30px;
+  text-align: right;
+  color: #555555;
+  width: 65px;
+  padding-bottom: 2px;
+}
+@keyframes scrollText {
+  0% {
+    transform: translateX(0%);
+  }
 
-.pickup::after {
-  content: "";
-  display: block;
-  width: 16px;
-  height: 4px;
-  border-radius: 4px;
-  background-color: #666666;
+  30% {
+    transform: translateX(0%);
+  }
+
+  100% {
+    transform: translateX(-50%);
+  }
 }
 
 </style>
