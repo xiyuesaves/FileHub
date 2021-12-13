@@ -3,7 +3,7 @@
     <div class="box-head">
       <p class="view-text">文件预览</p>
       <div class="controls">
-        <button :title="isFullSize ? '恢复' : '最大化'" @click="isFullSize = !isFullSize" :class="['btn','iconfont',{'icon-maximizezuidahua':!isFullSize,'icon-huanyuan':isFullSize}]"></button>
+        <!-- <button :title="isFullSize ? '恢复' : '最大化'" @click="isFullSize = !isFullSize" :class="['btn','iconfont',{'icon-maximizezuidahua':!isFullSize,'icon-huanyuan':isFullSize}]"></button> -->
         <button title="关闭" @click="closeMask" class="btn iconfont icon-guanbi close"></button>
       </div>
     </div>
@@ -69,7 +69,7 @@ export default {
       showNum: 0,
       loadingView: true,
       source: this.axios.CancelToken.source(),
-      localhost: this.$parent.$parent.localhost,
+      localhost: this.$parent.localhost,
       showItem: true
     }
   },
@@ -145,6 +145,7 @@ export default {
         case "gif":
         case "webp":
         case "bmp":
+        case "ico":
           return "image" // 图片
           break
         case "txt":
@@ -163,6 +164,7 @@ export default {
         case "cmd":
         case "ps1":
         case "xml":
+        case "sh":
         case "md":
           return "text" // 可编辑文本图标
           break
@@ -211,9 +213,12 @@ export default {
 }
 
 .main-box {
+  border: solid 1px #d5d8da;
+  border-radius: 6px;
   width: 1152px;
+  overflow: hidden;
   max-width: 100%;
-  height: 608px;
+  height: 607px;
   transition: width 300ms, height 300ms;
 }
 
@@ -225,7 +230,7 @@ export default {
 .box-head {
   width: 100%;
   max-width: 100%;
-  padding: 8px 16px;
+  padding: 12px 16px;
   background-color: #f6f8fa;
   box-sizing: border-box;
   display: flex;
@@ -250,7 +255,7 @@ export default {
 .content {
   box-sizing: border-box;
   padding: 0;
-  height: calc(100% - 38px);
+  height: calc(100% - 46px);
   display: flex;
   align-items: flex-start;
   justify-content: center;
@@ -292,7 +297,7 @@ export default {
   transition: width 300ms;
 }
 
-.content .right-item .right-item-content{
+.content .right-item .right-item-content {
   width: 296px;
   height: 100%;
 }
@@ -410,10 +415,6 @@ export default {
   justify-content: flex-start;
 }
 
-.file-item:nth-child(n + 10):last-child {
-  /*border-bottom: none;*/
-}
-
 .file-item:hover {
   background-color: #f6f8fa;
 }
@@ -484,9 +485,11 @@ export default {
   color: #999999;
 }
 
-@media (max-width: 820px) {
+@media (max-width: 990px) {
   .right-item {
-    display: none;
+    /*display: none;*/
+    width: 0!important;
+    border-left: none!important;
   }
 
   .content .preview-view {

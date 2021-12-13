@@ -8,7 +8,7 @@ export default {
   data() {
     return {
       showText: "",
-      localhost: this.$parent.$parent.$parent.localhost
+      localhost: this.$parent.localhost
     }
   },
   methods: {
