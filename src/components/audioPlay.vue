@@ -31,8 +31,8 @@ export default {
   props: ["selectFile", "localhost"],
   data() {
     return {
-      discTexture: this.initDisc(),
-      showMusicName: this.selectFile + "　　",
+      discTexture: "",
+      showMusicName: "",
       overflowText: false,
       musicLink: `${this.localhost}/raw${window.location.pathname}${this.selectFile}`,
       mediaInformation: "",
@@ -40,8 +40,9 @@ export default {
     }
   },
   methods: {
-    initDisc() { // 生成随机碟片纹理
+    initDisc() { // 初始化播放器
       this.mediaInformation = ""
+      this.showMusicName = ""
       let turntableColor = "",
         leve = 30
       for (var i = 0; i < leve; i++) {
@@ -70,8 +71,11 @@ export default {
         if (data.performerInfo) {
           this.mediaInformation += `${data.performerInfo}`
         }
-        if (data.artist && !data.performerInfo) {
-          this.mediaInformation += `${data.artist}`
+        if (!this.showMusicName) {
+          this.showMusicName = this.selectFile
+        }
+        if (data.artist) {
+          this.mediaInformation = `${data.artist}`
         }
         this.scrollName()
       }).catch((err) => {
@@ -87,7 +91,7 @@ export default {
         }
       })
     },
-    pauseMusic(){
+    pauseMusic() {
       this.isplayMusic = !this.isplayMusic
       console.log("暂停")
     }
@@ -95,13 +99,14 @@ export default {
   watch: {
     selectFile(newName) {
       this.discTexture = this.initDisc();
-      this.showMusicName = this.selectFile
+      // this.showMusicName = this.selectFile
       // 名称超长判断
       this.scrollName()
     }
   },
   mounted() {
-    this.showMusicName = this.selectFile
+    this.discTexture = this.initDisc();
+    // this.showMusicName = this.selectFile
     this.scrollName()
   }
 }
@@ -276,7 +281,7 @@ export default {
   justify-content: space-between;
 }
 
-.play-btn{
+.play-btn {
   width: 16px;
   height: 16px;
   border: none;
@@ -287,31 +292,36 @@ export default {
   text-align: center;
   box-sizing: border-box;
   line-height: 20px;
-  transform: translateY(-2px);  
+  transform: translateY(-2px);
   padding: 0;
   transition: background-color 150ms;
 }
-.play-btn:active{
+
+.play-btn:active {
   color: #555555;
 }
-.progress{
+
+.progress {
   width: calc(100% - 100px);
   height: 3px;
   position: relative;
 }
-.progress-bar{
+
+.progress-bar {
   width: 100%;
   height: 100%;
   background-color: #d5d8da;
   overflow: hidden;
 }
-.inside-bar{
+
+.inside-bar {
   width: 100%;
   height: 100%;
   transform: translateX(-50%);
   background-color: #f95342;
 }
-.progress-control{
+
+.progress-control {
   width: 14px;
   height: 14px;
   border-radius: 50%;
@@ -323,7 +333,8 @@ export default {
   left: 50%;
   transform: translateX(-50%);
 }
-.times{
+
+.times {
   font-size: 12px;
   line-height: 30px;
   text-align: right;
@@ -331,6 +342,7 @@ export default {
   width: 65px;
   padding-bottom: 2px;
 }
+
 @keyframes scrollText {
   0% {
     transform: translateX(0%);
