@@ -1,13 +1,14 @@
 <template>
   <div @scroll="fileListScroll" id="app">
-    <!-- 文件预览 -->
-    <popUps :formatSize="formatSize" :isOpen="showPreviewFile" @changeSelectFile="changeSelectFile" :maskContent="previewFile" :filePath="filePath" :fileLists="fileList" :selectFile="selectFile" :fileIcons="fileIcons" :closeMask="closePreviewFile" />
     <!-- 报错提醒 -->
     <warning :showWarn="showWarn" />
     <div class="main-view">
       <topTitle :title="title" />
       <actionBar :selectDrive="selectDrive" :rootList="rootList" :switchDirectory="switchDirectory" :createFolder="createFolder" :createFile="createFile" />
-      <fileDirectory ref="fileDirectory" :formatSize="formatSize" :formatDate="formatDate" :fileIcons="fileIcons" :isLoad="loadFileList" :filePath="filePath" :fileList="fileList" :openFile="openFile" :getFileList="getFileList" />
+      <fileDirectory v-show="!selectFile" ref="fileDirectory" :formatSize="formatSize" :formatDate="formatDate" :fileIcons="fileIcons" :isLoad="loadFileList" :filePath="filePath" :fileList="fileList" :openFile="openFile" :getFileList="getFileList" />
+      <!-- 文件预览 -->
+      <previewFile v-show="selectFile" @changeSelectFile="changeSelectFile" :filePath="filePath" :fileLists="fileList" :selectFile="selectFile" :fileIcons="fileIcons" :closeMask="closePreviewFile" :formatSize="formatSize" />
+      <!-- <popUps v-if="selectFile" :formatSize="formatSize" :isOpen="showPreviewFile" @changeSelectFile="changeSelectFile" :maskContent="previewFile" :filePath="filePath" :fileLists="fileList" :selectFile="selectFile" :fileIcons="fileIcons" :closeMask="closePreviewFile" /> -->
     </div>
     <div class="tool-bar">
       <toolBar :statisticsList="fileList" :urlHref="url" />
@@ -32,7 +33,8 @@ export default {
     fileDirectory,
     toolBar,
     popUps,
-    warning
+    warning,
+    previewFile
   },
   data() {
     return {
@@ -41,7 +43,7 @@ export default {
       source: this.axios.CancelToken.source(),
       selectDrive: "--", // 选中根目录
       filePath: "加载中...", // 文件路径
-      localhost: 'http://192.168.0.101:88', // 后台地址
+      localhost: 'http://192.168.0.102:88', // 后台地址
       fileList: [], // 文件列表
       loadFileList: false,
       url: decodeURI(window.location.href),
@@ -80,7 +82,7 @@ export default {
       console.log("在此处创建文件夹", this.filePath)
     },
     getrootList() {
-      this.axios.get(`${this.localhost}/getrootList`).then(res => {
+      this.axios.get(`${this.localhost}/getRootList`).then(res => {
         console.log("已获取根目录", res)
         if (res.data.status == 'success') {
           this.rootList = res.data.data
@@ -130,6 +132,7 @@ export default {
           let nosearchUrl = url.href.replace(url.search, "")
           history.pushState({ lastPath: url.href }, "", `${nosearchUrl}?view=${target.name}`)
           this.showPreview(target.name)
+          this.url = window.location.href
           break
       }
     },
@@ -139,6 +142,7 @@ export default {
       this.selectFile = name;
     },
     changeSelectFile(fileName) {
+      this.url = window.location.href
       this.selectFile = fileName
     },
     newCancelToken() {
@@ -261,6 +265,7 @@ export default {
         case "png":
         case "gif":
         case "webp":
+        case "ico":
         case "bmp":
           return "icon-tupian" // 图片图标
           break
@@ -288,6 +293,7 @@ export default {
         case "cmd":
         case "md":
         case "ps1":
+        case "sh":
           return "icon-24gl-fileText" // 可编辑文本图标
           break
         default:
@@ -318,6 +324,7 @@ export default {
     this.getrootList() // 获取根目录
     window.addEventListener("scroll", this.fileListScroll, true) // 监听全局滚动事件
     window.addEventListener('popstate', (event) => { // 监听浏览器前进返回事件
+      this.url = window.location.href
       this.urlPath = decodeURI(window.location.pathname.substring(1)) // 获取文件路径
       let viewFile = new URLSearchParams(decodeURI(window.location.search.substring(1))) // 获取当前预览文件名
       this.selectFile = viewFile.get("view") // 传递给实例
