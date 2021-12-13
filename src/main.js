@@ -7,12 +7,9 @@ import App from './App'
 import axios from 'axios'
 import VueAxios from 'vue-axios'
 import VueCookies from 'vue-cookies'
-import Video from 'video.js'
 
 import './assets/iconfont.css'
-import 'video.js/dist/video-js.css'
 
-Vue.prototype.$video = Video
 Vue.use(VueCookies);
 Vue.use(VueAxios, axios);
 Vue.use(VueClipboard);
