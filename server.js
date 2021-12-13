@@ -3,6 +3,7 @@ const fs = require('fs');
 const path = require('path');
 const app = express();
 const cors = require("cors");
+const mm = require('music-metadata');
 
 const rootList = [
   { rootPath: "C:/" },
@@ -25,6 +26,7 @@ app.get('/getRootList', function(req, res) {
   }
 });
 
+// 获取路径接口
 app.get('/path/*', function(req, res) {
   let path = decodeURI(req.url.replace('/path/', ''))
   console.log("获取路径", path)
@@ -72,7 +74,8 @@ app.get('/path/*', function(req, res) {
   }
 });
 
-app.get('/download/*', function(req, res, next) {
+// 下载文件接口
+app.get('/download/*', function(req, res) {
   // 实现文件下载 
   let filePath = path.join(decodeURI(req.url.replace("/download/", "")))
   if (authorizedRootDirectory(filePath)) {
@@ -119,6 +122,32 @@ app.get('/download/*', function(req, res, next) {
     res.end();
   }
 });
+
+// 媒体信息接口
+app.get('/info/*', async function(req, res) {
+  let filePath = path.join(decodeURI(req.url.replace("/info/", "")))
+  if (authorizedRootDirectory(filePath)) {
+    try {
+      let stats = fs.statSync(filePath);
+      if (stats.isFile()) {
+        let info = await mm.parseFile(filePath)
+        res.json(info);
+      } else {
+        console.log("没有找到该文件")
+        res.status(404);
+        res.end();
+      }
+    } catch (err) {
+      console.log("没有找到该文件")
+      res.status(404);
+      res.end();
+    }
+  } else {
+    console.log("拒绝未授权目录的下载请求")
+    res.status(404);
+    res.end();
+  }
+})
 
 // 文件预览接口
 for (var i = 0; i < rootList.length; i++) {
