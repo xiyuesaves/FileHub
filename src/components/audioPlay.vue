@@ -4,7 +4,10 @@
       <!-- 唱片 -->
       <div class="turntable">
         <div class="music-picture"></div>
-        <div v-show="!isPicture" class="shadow"></div>
+        <transition name='showp'>
+          <div v-show="isPicture" :style="{backgroundImage: discPicture}" class="picture"></div>
+        </transition>
+        <div class="shadow"></div>
         <div class="disc" :style="{backgroundImage: discTexture}"></div>
       </div>
       <!-- 歌名 -->
@@ -23,6 +26,8 @@
         </div>
         <span class="times">00:00/00:00</span>
       </div>
+      <!-- 播放元素 -->
+      <audio ref="audio" :src="musicLink" style="display: none;"></audio>
     </div>
   </div>
 </template>
@@ -32,16 +37,30 @@ export default {
   data() {
     return {
       discTexture: "",
+      discPicture: "",
+      playTime: 0,
+      endTime: 0,
       isPicture: false,
       showMusicName: "",
       overflowText: false,
+      source: this.axios.CancelToken.source(),
       musicLink: `${this.localhost}/raw${window.location.pathname}${this.selectFile}`,
       mediaInformation: "",
-      isplayMusic: false
+      isplayMusic: false,
+      loadInfo: false,
+      transitionPause: ""
     }
   },
   methods: {
+    formatTime(time) {
+      let newTime,
+        second = ("0" + (time % 60)).substr(-2),
+        minute = ("0" + ((time - second) / 60)).substr(-2);
+      newTime = `${minute}:${second}`;
+      return newTime
+    },
     initDisc() { // 初始化播放器
+      clearTimeout(this.transitionPause)
       this.isPicture = false;
       this.isplayMusic = false;
       this.mediaInformation = "";
@@ -59,17 +78,24 @@ export default {
       this.getMusicInfo()
       this.discTexture = `radial-gradient(#00000000 68%,#000000 68.1%,#000000 68.5%,rgb(60,60,60) 69%),radial-gradient(#000000 26%,${turntableColor}#000000)`
     },
+    newCancelToken() {
+      this.source = this.axios.CancelToken.source()
+      return this.source.token
+    },
     getMusicInfo() {
       let infoLink = `${this.localhost}/info${window.location.pathname}${this.selectFile}`
+      if (this.loadInfo) {
+        this.source.cancel('结束上一次请求');
+      }
+      this.loadInfo = true
       console.log("发起请求")
-      this.axios({
-        methods: "get",
-        url: infoLink,
+      this.axios.get(infoLink, {
+        cancelToken: this.newCancelToken()
       }).then((res) => {
+        this.loadInfo = false
         let data = res.data.common
         console.log("接收到专辑信息", data)
         if (data.title) {
-          console.log("触发", data.title)
           this.showMusicName = data.title
         }
         if (data.performerInfo) {
@@ -88,7 +114,7 @@ export default {
             binary += String.fromCharCode(bytes[i]);
           }
           let dataStr = window.btoa(binary)
-          this.discTexture = `url(data:image/png;base64,${dataStr})`
+          this.discPicture = `url(data:image/png;base64,${dataStr})`
           this.isPicture = true
         }
         this.scrollName()
@@ -107,7 +133,34 @@ export default {
     },
     pauseMusic() {
       this.isplayMusic = !this.isplayMusic
-      console.log("暂停")
+      if (this.isplayMusic) {
+        // console.log("播放 ")
+        clearTimeout(this.transitionPause)
+        this.$refs.audio.play()
+        let upV = () => {
+          this.transitionPause = setTimeout(() => {
+            if (this.$refs.audio.volume !== 1) {
+              this.$refs.audio.volume = Math.floor((this.$refs.audio.volume + 0.1) * 100) / 100
+              upV()
+            }
+          }, 20)
+        }
+        upV()
+      } else {
+        // console.log("暂停 ")
+        clearTimeout(this.transitionPause)
+        let downV = () => {
+          this.transitionPause = setTimeout(() => {
+            if (this.$refs.audio.volume !== 0) {
+              this.$refs.audio.volume = Math.floor((this.$refs.audio.volume - 0.1) * 100) / 100
+              downV()
+            } else {
+              this.$refs.audio.pause()
+            }
+          }, 20)
+        }
+        downV()
+      }
     }
   },
   watch: {
@@ -205,9 +258,6 @@ export default {
   left: 50%;
   z-index: 30;
   transform: translateY(-50%) translateX(-50%);
-  background-size: cover;
-  background-repeat: no-repeat;
-  background-position: center;
 }
 
 .music-picture::after {
@@ -222,6 +272,21 @@ export default {
   border-radius: 10px;
   z-index: 10;
   background-color: #ffffff;
+}
+
+
+.picture {
+  width: 70%;
+  height: 70%;
+  border-radius: 50%;
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: center;
+  position: absolute;
+  z-index: 31;
+  top: 50%;
+  left: 50%;
+  transform: translateY(-50%) translateX(-50%);
 }
 
 .shadow {
@@ -358,6 +423,19 @@ export default {
   color: #555555;
   width: 65px;
   padding-bottom: 2px;
+}
+
+.showp-enter-active,
+.showp-leave-active {
+  transition: opacity 150ms;
+}
+
+.showp-enter,
+.showp-leave-to
+
+/* .fade-leave-active below version 2.1.8 */
+  {
+  opacity: 0;
 }
 
 @keyframes scrollText {
