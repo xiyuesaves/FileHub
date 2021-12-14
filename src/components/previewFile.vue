@@ -20,7 +20,7 @@
         <div class="right-item-content">
           <div ref="fileListEl" @scroll="handleScroll" class="scroll-file-list">
             <div :style="`height: ${scrollH}px;`" class="scroll-box">
-              <div @mousedown="selectOther(file.name)" :style="`transform: translateY(${offsetY}px);`" v-for="(file,idnex) in realRender" v-if="file.type !== 'floder'" :class="['file-item',{'active':file.name === selectFile}]">
+              <div @mousedown.left="selectOther(file.name)" :style="`transform: translateY(${offsetY}px);`" v-for="(file,idnex) in realRender" v-if="file.type !== 'floder'" :class="['file-item',{'active':file.name === selectFile}]">
                 <span :title="file.type" :class="['iconfont','file-icon', fileIcons(file.type)]"></span>
                 <div class="file-detail">
                   <span :title="file.name" class="file-name">
@@ -343,7 +343,7 @@ export default {
   position: absolute;
   width: 10px;
   height: 60px;
-  top: calc(50% - 60px);
+  top: calc(50% - 30px);
   left: 0;
   z-index: 10;
   /*background-color: #f8f8f8;*/
