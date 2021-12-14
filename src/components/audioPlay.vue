@@ -1,14 +1,16 @@
 <template>
-  <div class="audio-player">
+  <div :class="['audio-player',{'no-drop':dragProgress}]">
     <div class="main-box">
       <!-- 唱片 -->
       <div class="turntable">
         <div class="music-picture"></div>
-        <transition name='showp'>
-          <div v-show="isPicture" :style="{backgroundImage: discPicture}" class="picture"></div>
-        </transition>
         <div class="shadow"></div>
-        <div class="disc" :style="{backgroundImage: discTexture}"></div>
+        <div class="picture-box" :style="{'transform': `rotateZ(${discRotate}deg)`,transition: `transform ${delayTime} linear`}">
+          <transition name='showp'>
+            <div v-show="isPicture" :style="{'backgroundImage': discPicture}" class="picture"></div>
+          </transition>
+        </div>
+        <div class="disc" :style="{'backgroundImage': discTexture,'transform': `rotateZ(${discRotate}deg)`}"></div>
       </div>
       <!-- 歌名 -->
       <p :class="['music-name',{'scrollText':overflowText}]" ref="nameBox"><span ref="musicName">{{showMusicName}}</span></p>
@@ -19,15 +21,15 @@
         <button @click="pauseMusic" :class="['play-btn','iconfont',{'icon-24gf-pause2':isplayMusic},{'icon-24gf-play':!isplayMusic}]">
         </button>
         <div class="progress">
-          <div class="progress-bar">
-            <div class="inside-bar"></div>
+          <div ref="progressBar" class="progress-bar">
+            <div :style="{transform:`translateX(-${100 - progressRate}%)`,transition:`transform ${transitionDelay}`}" class="inside-bar"></div>
           </div>
-          <div class="progress-control"></div>
+          <div ref="drag" :style="{left:`${progressRate}%`,transition:`left ${transitionDelay}`}" class="progress-control"></div>
         </div>
-        <span class="times">00:00/00:00</span>
+        <span class="times">{{formatTime(playTime)}}/{{formatTime(endTime)}}</span>
       </div>
       <!-- 播放元素 -->
-      <audio ref="audio" :src="musicLink" style="display: none;"></audio>
+      <audio preload ref="audio" :src="musicLink" style="display: none;"></audio>
     </div>
   </div>
 </template>
@@ -40,6 +42,14 @@ export default {
       discPicture: "",
       playTime: 0,
       endTime: 0,
+      progressRate: 0,
+      lastRate: 0,
+      discRotate: 0,
+      dragProgress: false,
+      transitionDelay: "300ms",
+      delayTime: "1s",
+      currentX: 0,
+      previousX: 0,
       isPicture: false,
       showMusicName: "",
       overflowText: false,
@@ -48,7 +58,7 @@ export default {
       mediaInformation: "",
       isplayMusic: false,
       loadInfo: false,
-      transitionPause: ""
+      transitionPause: "",
     }
   },
   methods: {
@@ -65,6 +75,11 @@ export default {
       this.isplayMusic = false;
       this.mediaInformation = "";
       this.showMusicName = "";
+      this.playTime = 0;
+      this.endTime = 0;
+      this.progressRate = 0;
+      this.lastRate = 0;
+      this.delayTime = "0s";
       let turntableColor = "",
         leve = 30
       for (var i = 0; i < leve; i++) {
@@ -95,6 +110,7 @@ export default {
         this.loadInfo = false
         let data = res.data.common
         console.log("接收到专辑信息", data)
+        this.delayTime = "1s";
         if (data.title) {
           this.showMusicName = data.title
         }
@@ -169,17 +185,97 @@ export default {
       // this.showMusicName = this.selectFile
       // 名称超长判断
       this.scrollName()
+    },
+    dragProgress() {
+      if (this.dragProgress) {
+        this.transitionDelay = "0ms"
+        this.delayTime = "0ms"
+      } else {
+        this.transitionDelay = "300ms"
+        this.delayTime = "1s"
+      }
     }
   },
   mounted() {
     this.initDisc();
-    // this.showMusicName = this.selectFile
-    this.scrollName()
+    this.scrollName();
+    this.$refs.audio.addEventListener("canplay", () => {
+      this.endTime = Math.floor(this.$refs.audio.duration)
+    })
+    this.$refs.audio.addEventListener("timeupdate", () => {
+      this.progressRate = ((Math.floor(this.$refs.audio.currentTime) / Math.floor(this.$refs.audio.duration)) * 100) || 0
+      this.playTime = Math.floor(this.$refs.audio.currentTime)
+      this.discRotate = this.progressRate * 36
+    })
+    this.$refs.audio.addEventListener("ended", () => {
+      this.isplayMusic = false
+      this.delayTime = "0s";
+      this.discRotate = 0
+      setTimeout(() => {
+        this.delayTime = "1s";
+      }, 30)
+    })
+    // pc监听事件
+    let prevStatic = false;
+    window.addEventListener("mousedown", (e) => {
+      if (e.target === this.$refs.drag) {
+        this.dragProgress = true
+        this.previousX = e.clientX
+        this.lastRate = this.progressRate
+        prevStatic = this.isplayMusic
+        if (prevStatic) {
+          this.pauseMusic()
+        }
+      }
+    })
+    window.addEventListener("mouseup", (e) => {
+      if (this.dragProgress) {
+        if (prevStatic) {
+          this.pauseMusic()
+        }
+        this.dragProgress = false
+      }
+    })
+    window.addEventListener("blur", (e) => {
+      if (this.dragProgress) {
+        if (prevStatic) {
+          this.pauseMusic()
+        }
+        this.dragProgress = false
+      }
+    })
+    window.addEventListener("mousemove", (e) => {
+      if (this.dragProgress) {
+        let coverX = e.clientX - this.previousX,
+          width = this.$refs.progressBar.offsetWidth,
+          revise = coverX / width * 100
+        this.progressRate = this.lastRate + revise
+        if (this.progressRate <= 0) {
+          this.progressRate = 0
+        }
+        if (this.progressRate >= 99) {
+          this.progressRate = 99
+        }
+        this.$refs.audio.currentTime = this.$refs.audio.duration * (this.progressRate / 100)
+      }
+    })
+    this.$refs.progressBar.addEventListener("click", (e) => {
+      this.delayTime = "300ms"
+      setTimeout(() => {
+        this.delayTime = "1s"
+      }, 300)
+      this.$refs.audio.currentTime = this.$refs.audio.duration * (e.layerX / this.$refs.progressBar.offsetWidth)
+    })
+    // 手机监听事件
   }
 }
 
 </script>
 <style scoped>
+.no-drop {
+  user-select: none;
+}
+
 .audio-player {
   width: 100%;
   height: 100%;
@@ -274,6 +370,14 @@ export default {
   background-color: #ffffff;
 }
 
+.picture-box {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 31;
+}
 
 .picture {
   width: 70%;
@@ -283,10 +387,10 @@ export default {
   background-repeat: no-repeat;
   background-position: center;
   position: absolute;
-  z-index: 31;
-  top: 50%;
-  left: 50%;
-  transform: translateY(-50%) translateX(-50%);
+  top: 15%;
+  left: 15%;
+  /*transition: transform 1s linear;*/
+  /*transform: translateY(-50%) translateX(-50%);*/
 }
 
 .shadow {
@@ -399,8 +503,9 @@ export default {
 .inside-bar {
   width: 100%;
   height: 100%;
-  transform: translateX(-50%);
+  transform: translateX(-100%);
   background-color: #f95342;
+  /*transition: transform 300ms;*/
 }
 
 .progress-control {
@@ -412,7 +517,8 @@ export default {
   box-sizing: border-box;
   position: absolute;
   top: -5.5px;
-  left: 50%;
+  left: 0%;
+  /*transition: left 300ms;*/
   transform: translateX(-50%);
 }
 
@@ -427,14 +533,11 @@ export default {
 
 .showp-enter-active,
 .showp-leave-active {
-  transition: opacity 150ms;
+  transition: opacity 300ms;
 }
 
 .showp-enter,
-.showp-leave-to
-
-/* .fade-leave-active below version 2.1.8 */
-  {
+.showp-leave-to {
   opacity: 0;
 }
 
