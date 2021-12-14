@@ -199,6 +199,7 @@ export default {
           if (callback) { // 回调
             callback()
           }
+          this.checkURL()
         } else {
           // this.fileList = lastFileList
           this.filePath = lastPath
@@ -319,12 +320,8 @@ export default {
         return str.slice(-2)
       }
     },
-  },
-  mounted() {
-    this.getrootList() // 获取根目录
-    window.addEventListener("scroll", this.fileListScroll, true) // 监听全局滚动事件
-    window.addEventListener('popstate', (event) => { // 监听浏览器前进返回事件
-      this.url = window.location.href
+    checkURL() {
+      this.url = window.location.href // 缩短路径
       this.urlPath = decodeURI(window.location.pathname.substring(1)) // 获取文件路径
       let viewFile = new URLSearchParams(decodeURI(window.location.search.substring(1))) // 获取当前预览文件名
       this.selectFile = viewFile.get("view") // 传递给实例
@@ -341,6 +338,13 @@ export default {
           this.selectDrive = thisletter
         }
       }
+    }
+  },
+  mounted() {
+    this.getrootList() // 获取根目录
+    window.addEventListener("scroll", this.fileListScroll, true) // 监听全局滚动事件
+    window.addEventListener('popstate', () => { // 监听浏览器前进返回事件
+      this.checkURL()
     });
   }
 }
