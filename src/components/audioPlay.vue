@@ -4,8 +4,8 @@
       <!-- 唱片 -->
       <div class="turntable">
         <div class="music-picture"></div>
-        <div class="shadow"></div>
-        <div class="disc" :style="`background-image: radial-gradient(#00000000 68%,#000000 68.1%,#000000 68.5%,rgb(60,60,60) 69%),radial-gradient(#000000 26%,${discTexture}#000000);`"></div>
+        <div v-show="!isPicture" class="shadow"></div>
+        <div class="disc" :style="{backgroundImage: discTexture}"></div>
       </div>
       <!-- 歌名 -->
       <p :class="['music-name',{'scrollText':overflowText}]" ref="nameBox"><span ref="musicName">{{showMusicName}}</span></p>
@@ -32,17 +32,20 @@ export default {
   data() {
     return {
       discTexture: "",
+      isPicture: false,
       showMusicName: "",
       overflowText: false,
       musicLink: `${this.localhost}/raw${window.location.pathname}${this.selectFile}`,
       mediaInformation: "",
-      isplayMusic: true
+      isplayMusic: false
     }
   },
   methods: {
     initDisc() { // 初始化播放器
-      this.mediaInformation = ""
-      this.showMusicName = ""
+      this.isPicture = false;
+      this.isplayMusic = false;
+      this.mediaInformation = "";
+      this.showMusicName = "";
       let turntableColor = "",
         leve = 30
       for (var i = 0; i < leve; i++) {
@@ -54,7 +57,7 @@ export default {
       }
       this.musicLink = `${this.localhost}/raw${window.location.pathname}${this.selectFile}`
       this.getMusicInfo()
-      return turntableColor
+      this.discTexture = `radial-gradient(#00000000 68%,#000000 68.1%,#000000 68.5%,rgb(60,60,60) 69%),radial-gradient(#000000 26%,${turntableColor}#000000)`
     },
     getMusicInfo() {
       let infoLink = `${this.localhost}/info${window.location.pathname}${this.selectFile}`
@@ -66,16 +69,27 @@ export default {
         let data = res.data.common
         console.log("接收到专辑信息", data)
         if (data.title) {
+          console.log("触发", data.title)
           this.showMusicName = data.title
         }
         if (data.performerInfo) {
-          this.mediaInformation += `${data.performerInfo}`
+          this.mediaInformation = `${data.performerInfo}`
         }
-        if (!this.showMusicName) {
+        if (!data.title) {
           this.showMusicName = this.selectFile
         }
         if (data.artist) {
           this.mediaInformation = `${data.artist}`
+        }
+        if (data.picture && data.picture[0]) {
+          var binary = '',
+            bytes = new Uint8Array(data.picture[0].data.data);
+          for (var i = 0; i < bytes.byteLength; i++) {
+            binary += String.fromCharCode(bytes[i]);
+          }
+          let dataStr = window.btoa(binary)
+          this.discTexture = `url(data:image/png;base64,${dataStr})`
+          this.isPicture = true
         }
         this.scrollName()
       }).catch((err) => {
@@ -86,7 +100,7 @@ export default {
       this.overflowText = false
       setTimeout(() => {
         if (this.$refs.musicName.offsetWidth > this.$refs.nameBox.offsetWidth) {
-          this.showMusicName = this.selectFile + "　　" + this.selectFile + "　　"
+          this.showMusicName = this.showMusicName + "　　" + this.showMusicName + "　　"
           this.overflowText = true
         }
       })
@@ -98,14 +112,14 @@ export default {
   },
   watch: {
     selectFile(newName) {
-      this.discTexture = this.initDisc();
+      this.initDisc();
       // this.showMusicName = this.selectFile
       // 名称超长判断
       this.scrollName()
     }
   },
   mounted() {
-    this.discTexture = this.initDisc();
+    this.initDisc();
     // this.showMusicName = this.selectFile
     this.scrollName()
   }
@@ -162,6 +176,9 @@ export default {
   height: 100%;
   border-radius: 400px;
   background-color: #000000;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
   animation: rotate 60s;
 }
 
