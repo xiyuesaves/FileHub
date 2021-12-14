@@ -91,10 +91,11 @@ export default {
             break
           default:
             let randNum = Math.random()
-            if (!randNum) {
-              randNum = 0.233333
+            if (randNum <= 0.064 || randNum === 1) {
+              return "#D67FFF";
+            } else {
+              return '#' + (randNum  * 0xffffff << 0).toString(16);
             }
-            return '#' + (randNum  * 0xffffff << 0).toString(16);
         }
       }
       this.sliders = statisticsData
