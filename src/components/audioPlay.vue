@@ -5,7 +5,7 @@
       <div class="turntable">
         <div class="music-picture"></div>
         <div class="shadow"></div>
-        <div class="picture-box" :style="{'transform': `rotateZ(${discRotate}deg)`,transition: `transform ${delayTime} linear`}">
+        <div class="picture-box" :style="{'transform': `rotateZ(${discRotate}deg)`}">
           <transition name='showp'>
             <div v-show="isPicture" :style="{'backgroundImage': discPicture}" class="picture"></div>
           </transition>
@@ -47,7 +47,6 @@ export default {
       discRotate: 0,
       dragProgress: false,
       transitionDelay: "300ms",
-      delayTime: "1s",
       currentX: 0,
       previousX: 0,
       isPicture: false,
@@ -79,7 +78,6 @@ export default {
       this.endTime = 0;
       this.progressRate = 0;
       this.lastRate = 0;
-      this.delayTime = "0s";
       let turntableColor = "",
         leve = 30
       for (var i = 0; i < leve; i++) {
@@ -110,7 +108,6 @@ export default {
         this.loadInfo = false
         let data = res.data.common
         console.log("接收到专辑信息", data)
-        this.delayTime = "1s";
         if (data.title) {
           this.showMusicName = data.title
         }
@@ -189,10 +186,8 @@ export default {
     dragProgress() {
       if (this.dragProgress) {
         this.transitionDelay = "0ms"
-        this.delayTime = "0ms"
       } else {
         this.transitionDelay = "300ms"
-        this.delayTime = "1s"
       }
     }
   },
@@ -203,17 +198,15 @@ export default {
       this.endTime = Math.floor(this.$refs.audio.duration)
     })
     this.$refs.audio.addEventListener("timeupdate", () => {
-      this.progressRate = ((Math.floor(this.$refs.audio.currentTime) / Math.floor(this.$refs.audio.duration)) * 100) || 0
-      this.playTime = Math.floor(this.$refs.audio.currentTime)
-      this.discRotate = this.progressRate * 36
+      if (!this.dragProgress) {
+        this.progressRate = ((Math.floor(this.$refs.audio.currentTime) / Math.floor(this.$refs.audio.duration)) * 100) || 0
+        this.playTime = Math.floor(this.$refs.audio.currentTime)
+      }
+      // this.discRotate = this.progressRate * 36
     })
     this.$refs.audio.addEventListener("ended", () => {
       this.isplayMusic = false
-      this.delayTime = "0s";
       this.discRotate = 0
-      setTimeout(() => {
-        this.delayTime = "1s";
-      }, 30)
     })
     // pc监听事件
     let prevStatic = false;
@@ -248,22 +241,25 @@ export default {
       if (this.dragProgress) {
         let coverX = e.clientX - this.previousX,
           width = this.$refs.progressBar.offsetWidth,
-          revise = coverX / width * 100
-        this.progressRate = this.lastRate + revise
-        if (this.progressRate <= 0) {
+          revise = coverX / width * 100,
+          rateNum = this.lastRate + revise
+        if (rateNum <= 0) {
           this.progressRate = 0
+          this.$refs.audio.currentTime = 1
+          this.playTime = 0
+        } else if (rateNum >= 100) {
+          this.progressRate = 100
+          this.$refs.audio.currentTime = this.$refs.audio.duration - 1
+          this.playTime = Math.floor(this.$refs.audio.duration)
+        } else {
+          this.progressRate = rateNum
+          this.$refs.audio.currentTime = this.$refs.audio.duration * (rateNum / 100)
+          this.playTime = Math.floor(this.$refs.audio.duration * (rateNum / 100))
         }
-        if (this.progressRate >= 99) {
-          this.progressRate = 99
-        }
-        this.$refs.audio.currentTime = this.$refs.audio.duration * (this.progressRate / 100)
+        
       }
     })
     this.$refs.progressBar.addEventListener("click", (e) => {
-      this.delayTime = "300ms"
-      setTimeout(() => {
-        this.delayTime = "1s"
-      }, 300)
       this.$refs.audio.currentTime = this.$refs.audio.duration * (e.layerX / this.$refs.progressBar.offsetWidth)
     })
     // 手机监听事件
