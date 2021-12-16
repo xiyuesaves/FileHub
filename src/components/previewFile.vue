@@ -11,9 +11,9 @@
       <div :class="['preview-view',{'hidenItem':!showItem}]">
         <download :downloadThisFile="downloadThisFile" :fileIcons="fileIcons" v-if="showPreviewPage(selectFile ? selectFile.split('.').pop() : '') === 'defaultFile'" :selectFile="selectFile" />
         <viewImage v-if="showPreviewPage(selectFile ? selectFile.split('.').pop() : '') === 'image'" :selectFile="selectFile" />
-        <viewText v-if="showPreviewPage(selectFile ? selectFile.split('.').pop() : '') === 'text'" :selectFile="selectFile" />
+        <viewText :newWran="newWran" v-if="showPreviewPage(selectFile ? selectFile.split('.').pop() : '') === 'text'" :selectFile="selectFile" />
         <viewVideo v-if="showPreviewPage(selectFile ? selectFile.split('.').pop() : '') === 'video'" :showPreviewPage="showPreviewPage" :localhost="localhost" :selectFile="selectFile" />
-        <viewAudio v-if="showPreviewPage(selectFile ? selectFile.split('.').pop() : '') === 'music'" :localhost="localhost" :selectFile="selectFile" />
+        <viewAudio :newWran="newWran" v-if="showPreviewPage(selectFile ? selectFile.split('.').pop() : '') === 'music'" :localhost="localhost" :selectFile="selectFile" />
       </div>
       <div v-on:keydown.enter="switchSelectFile" :class="['right-item',{'hidenItem':!showItem}]">
         <div class="hidden-item" :title="showItem ? '隐藏侧边栏' : '展开侧边栏'" @click="hidenRightItem"></div>
@@ -40,15 +40,15 @@
   </div>
 </template>
 <script>
+import menuButton from "./menuButton"
 import download from "./download"
 import viewImage from "./viewImage"
 import viewText from "./viewText"
 import viewVideo from "./viewVideo"
 import viewAudio from "./viewAudio"
-import menuButton from "./menuButton"
 
 export default {
-  props: ["closeMask", "filePath", "fileLists", "selectFile", "fileIcons", "formatSize"],
+  props: ["closeMask", "filePath", "fileLists", "selectFile", "fileIcons", "formatSize","changeSelectFile","newWran"],
   components: {
     download,
     viewImage,
@@ -57,6 +57,7 @@ export default {
     viewAudio,
     menuButton
   },
+  inheritAttrs: false, // 隐藏未被props匹配的v-bind元素
   data() {
     return {
       isFullSize: false,
@@ -101,7 +102,8 @@ export default {
     },
     selectOther(fileName) {
       if (fileName !== this.selectFile) {
-        this.$emit("changeSelectFile", fileName)
+        this.changeSelectFile(fileName)
+        // this.$emit("changeSelectFile", fileName)
         let url = window.location
         history.pushState({ lastPath: url.href }, "", url.href.replace(/\?view=.+$/, `?view=${fileName}`))
       }
