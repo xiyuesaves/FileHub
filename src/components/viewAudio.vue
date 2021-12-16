@@ -35,33 +35,33 @@
 </template>
 <script>
 export default {
-  props: ["selectFile", "localhost"],
+  props: ["selectFile", "localhost", "newWran"],
   data() {
     return {
-      discTexture: "",
-      discPicture: "",
-      playTime: 0,
-      endTime: 0,
-      progressRate: 0,
-      lastRate: 0,
-      discRotate: 0,
-      dragProgress: false,
-      transitionDelay: "300ms",
-      currentX: 0,
-      previousX: 0,
-      isPicture: false,
-      showMusicName: "",
-      overflowText: false,
-      source: this.axios.CancelToken.source(),
-      musicLink: `${this.localhost}/raw${window.location.pathname}${this.selectFile}`,
-      mediaInformation: "",
-      isplayMusic: false,
-      loadInfo: false,
-      transitionPause: "",
+      discTexture: "", // 唱片纹理
+      discPicture: "", // 专辑封面
+      isPicture: false, // 是否有封面信息
+      playTime: 0, // 已播放时长
+      endTime: 0, // 总时长
+      progressRate: 0, // 进度条位置
+      lastRate: 0, // 当前进度条位置
+      discRotate: 0, // 唱片旋转角度
+      dragProgress: false, // 拖拽进度条判断
+      transitionDelay: "300ms", // 进度条动画补间时长
+      currentX: 0, // 当前进度条位置
+      previousX: 0, // 选中时进度条位置
+      showMusicName: "", // 显示的音乐名称
+      overflowText: false, // 音乐名称是否启用滚动展示
+      source: this.axios.CancelToken.source(), // axios防抖
+      musicLink: `${this.localhost}/raw${window.location.pathname}${this.selectFile}`, // 音乐地址
+      mediaInformation: "", // 唱片其他信息-艺术家
+      isplayMusic: false, // 是否正在播放
+      loadInfo: false, // 是否加载完成
+      transitionPause: "", // 播放暂停过渡效果
     }
   },
   methods: {
-    formatTime(time) {
+    formatTime(time) { // 格式化时间
       let newTime,
         second = ("0" + (time % 60)).substr(-2),
         minute = ("0" + ((time - second) / 60)).substr(-2);
@@ -92,17 +92,16 @@ export default {
       this.getMusicInfo()
       this.discTexture = `radial-gradient(#00000000 68%,#000000 68.1%,#000000 68.5%,rgb(60,60,60) 69%),radial-gradient(#000000 26%,${turntableColor}#000000)`
     },
-    newCancelToken() {
+    newCancelToken() { // axios 中止token
       this.source = this.axios.CancelToken.source()
       return this.source.token
     },
-    getMusicInfo() {
+    getMusicInfo() { // 获取音乐详情
       let infoLink = `${this.localhost}/info${window.location.pathname}${this.selectFile}`
       if (this.loadInfo) {
         this.source.cancel('结束上一次请求');
       }
       this.loadInfo = true
-      console.log("发起请求")
       this.axios.get(infoLink, {
         cancelToken: this.newCancelToken()
       }).then((res) => {
@@ -133,11 +132,12 @@ export default {
           this.isPicture = true
         }
         this.scrollName()
-      }).catch((err) => {
+      }).catch(err => {
+        this.newWran("请求预览文件失败")
         console.log("请求专辑信息出错", err)
       })
     },
-    scrollName() {
+    scrollName() { // 超长滚动名称
       this.overflowText = false
       setTimeout(() => {
         if (this.$refs.musicName.offsetWidth > (this.$refs.nameBox.offsetWidth - 20)) {
@@ -146,7 +146,7 @@ export default {
         }
       })
     },
-    pauseMusic() {
+    pauseMusic() { // 渐入渐出暂停播放
       this.isplayMusic = !this.isplayMusic
       if (this.isplayMusic) {
         // console.log("播放 ")
@@ -209,6 +209,7 @@ export default {
       this.isplayMusic = false
     })
 
+    // 唱片旋转动画
     let discRotate = (argument) => {
       if (this.isplayMusic) {
         console.log("a")
@@ -217,6 +218,7 @@ export default {
       window.requestAnimationFrame(discRotate);
     }
     window.requestAnimationFrame(discRotate);
+
     // pc监听事件
     let prevStatic = false;
     window.addEventListener("mousedown", (e) => {
@@ -236,6 +238,7 @@ export default {
           this.pauseMusic()
         }
         this.dragProgress = false
+        this.$refs.audio.currentTime = this.playTime
       }
     })
     window.addEventListener("blur", (e) => {
@@ -244,6 +247,7 @@ export default {
           this.pauseMusic()
         }
         this.dragProgress = false
+        this.$refs.audio.currentTime = this.playTime
       }
     })
     window.addEventListener("mousemove", (e) => {
@@ -254,18 +258,14 @@ export default {
           rateNum = this.lastRate + revise
         if (rateNum <= 0) {
           this.progressRate = 0
-          this.$refs.audio.currentTime = 1
           this.playTime = 0
         } else if (rateNum >= 100) {
           this.progressRate = 100
-          this.$refs.audio.currentTime = this.$refs.audio.duration - 1
           this.playTime = Math.floor(this.$refs.audio.duration)
         } else {
           this.progressRate = rateNum
-          this.$refs.audio.currentTime = this.$refs.audio.duration * (rateNum / 100)
           this.playTime = Math.floor(this.$refs.audio.duration * (rateNum / 100))
         }
-
       }
     })
     this.$refs.progressBar.addEventListener("click", (e) => {
