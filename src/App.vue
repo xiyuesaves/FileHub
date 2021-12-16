@@ -43,7 +43,7 @@ export default {
       source: this.axios.CancelToken.source(),
       selectDrive: "--", // 选中根目录
       filePath: "加载中...", // 文件路径
-      localhost: 'http://192.168.0.102:88', // 后台地址
+      localhost: 'http://localhost:88', // 后台地址
       fileList: [], // 文件列表
       loadFileList: false,
       url: decodeURI(window.location.href),
