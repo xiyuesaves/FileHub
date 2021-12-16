@@ -78,6 +78,7 @@ export default {
       this.endTime = 0;
       this.progressRate = 0;
       this.lastRate = 0;
+      this.$refs.audio.volume = 1;
       let turntableColor = "",
         leve = 30
       for (var i = 0; i < leve; i++) {
@@ -105,7 +106,8 @@ export default {
       this.axios.get(infoLink, {
         cancelToken: this.newCancelToken()
       }).then((res) => {
-        this.loadInfo = false
+        this.loadInfo = false;
+        this.discRotate = 0;
         let data = res.data.common
         console.log("接收到专辑信息", data)
         if (data.title) {
@@ -138,7 +140,7 @@ export default {
     scrollName() {
       this.overflowText = false
       setTimeout(() => {
-        if (this.$refs.musicName.offsetWidth > this.$refs.nameBox.offsetWidth) {
+        if (this.$refs.musicName.offsetWidth > (this.$refs.nameBox.offsetWidth - 20)) {
           this.showMusicName = this.showMusicName + "　　" + this.showMusicName + "　　"
           this.overflowText = true
         }
@@ -202,12 +204,19 @@ export default {
         this.progressRate = ((Math.floor(this.$refs.audio.currentTime) / Math.floor(this.$refs.audio.duration)) * 100) || 0
         this.playTime = Math.floor(this.$refs.audio.currentTime)
       }
-      // this.discRotate = this.progressRate * 36
     })
     this.$refs.audio.addEventListener("ended", () => {
       this.isplayMusic = false
-      this.discRotate = 0
     })
+
+    let discRotate = (argument) => {
+      if (this.isplayMusic) {
+        console.log("a")
+        this.discRotate += 0.2
+      }
+      window.requestAnimationFrame(discRotate);
+    }
+    window.requestAnimationFrame(discRotate);
     // pc监听事件
     let prevStatic = false;
     window.addEventListener("mousedown", (e) => {
@@ -256,7 +265,7 @@ export default {
           this.$refs.audio.currentTime = this.$refs.audio.duration * (rateNum / 100)
           this.playTime = Math.floor(this.$refs.audio.duration * (rateNum / 100))
         }
-        
+
       }
     })
     this.$refs.progressBar.addEventListener("click", (e) => {
@@ -305,16 +314,6 @@ export default {
   box-shadow: rgb(140 149 159 / 50%) 0px 4px 10px;
 }
 
-@keyframes rotate {
-  from {
-    transform: rotateZ(0deg);
-  }
-
-  to {
-    transform: rotateZ(3600deg);
-  }
-}
-
 .disc {
   position: relative;
   width: 100%;
@@ -324,7 +323,6 @@ export default {
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
-  animation: rotate 60s;
 }
 
 .disc::after {
