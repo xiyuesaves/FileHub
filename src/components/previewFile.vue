@@ -10,10 +10,10 @@
     <div class="content">
       <div :class="['preview-view',{'hidenItem':!showItem}]">
         <download :downloadThisFile="downloadThisFile" :fileIcons="fileIcons" v-if="showPreviewPage(selectFile ? selectFile.split('.').pop() : '') === 'defaultFile'" :selectFile="selectFile" />
-        <images v-if="showPreviewPage(selectFile ? selectFile.split('.').pop() : '') === 'image'" :selectFile="selectFile" />
+        <viewImage v-if="showPreviewPage(selectFile ? selectFile.split('.').pop() : '') === 'image'" :selectFile="selectFile" />
         <viewText v-if="showPreviewPage(selectFile ? selectFile.split('.').pop() : '') === 'text'" :selectFile="selectFile" />
-        <playVideo v-if="showPreviewPage(selectFile ? selectFile.split('.').pop() : '') === 'video'" :showPreviewPage="showPreviewPage" :localhost="localhost" :selectFile="selectFile" />
-        <audioPlay v-if="showPreviewPage(selectFile ? selectFile.split('.').pop() : '') === 'music'" :localhost="localhost" :selectFile="selectFile" />
+        <viewVideo v-if="showPreviewPage(selectFile ? selectFile.split('.').pop() : '') === 'video'" :showPreviewPage="showPreviewPage" :localhost="localhost" :selectFile="selectFile" />
+        <viewAudio v-if="showPreviewPage(selectFile ? selectFile.split('.').pop() : '') === 'music'" :localhost="localhost" :selectFile="selectFile" />
       </div>
       <div v-on:keydown.enter="switchSelectFile" :class="['right-item',{'hidenItem':!showItem}]">
         <div class="hidden-item" :title="showItem ? '隐藏侧边栏' : '展开侧边栏'" @click="hidenRightItem"></div>
@@ -41,20 +41,20 @@
 </template>
 <script>
 import download from "./download"
-import images from "./image"
+import viewImage from "./viewImage"
 import viewText from "./viewText"
-import playVideo from "./playVideo"
-import audioPlay from "./audioPlay"
+import viewVideo from "./viewVideo"
+import viewAudio from "./viewAudio"
 import menuButton from "./menuButton"
 
 export default {
   props: ["closeMask", "filePath", "fileLists", "selectFile", "fileIcons", "formatSize"],
   components: {
     download,
-    images,
+    viewImage,
     viewText,
-    playVideo,
-    audioPlay,
+    viewVideo,
+    viewAudio,
     menuButton
   },
   data() {
