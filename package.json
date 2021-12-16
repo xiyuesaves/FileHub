@@ -20,7 +20,8 @@
     "vue": "^2.5.2",
     "vue-axios": "^3.4.0",
     "vue-clipboard2": "^0.3.3",
-    "vue-cookies": "^1.7.4"
+    "vue-cookies": "^1.7.4",
+    "vue-video-player": "^5.0.2"
   },
   "devDependencies": {
     "autoprefixer": "^7.1.2",

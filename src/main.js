@@ -8,8 +8,12 @@ import axios from 'axios'
 import VueAxios from 'vue-axios'
 import VueCookies from 'vue-cookies'
 
+import VueVideoPlayer from 'vue-video-player'
+
+import 'video.js/dist/video-js.css'
 import './assets/iconfont.css'
 
+Vue.use(VueVideoPlayer);
 Vue.use(VueCookies);
 Vue.use(VueAxios, axios);
 Vue.use(VueClipboard);
