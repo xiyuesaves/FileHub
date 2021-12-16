@@ -221,8 +221,7 @@ export default {
 
     // pc监听事件
     let prevStatic = false;
-    window.addEventListener("mousedown", (e) => {
-      if (e.target === this.$refs.drag) {
+    this.$refs.drag.addEventListener("mousedown", (e) => {
         this.dragProgress = true
         this.previousX = e.clientX
         this.lastRate = this.progressRate
@@ -230,7 +229,6 @@ export default {
         if (prevStatic) {
           this.pauseMusic()
         }
-      }
     })
     window.addEventListener("mouseup", (e) => {
       if (this.dragProgress) {
