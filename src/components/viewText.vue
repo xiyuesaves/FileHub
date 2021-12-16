@@ -4,7 +4,7 @@
 </template>
 <script>
 export default {
-  props: ["selectFile"],
+  props: ["selectFile","newWran"],
   data() {
     return {
       showText: "",
@@ -20,7 +20,10 @@ export default {
         }
       }).then(res => {
         this.showText = res.data
-      })
+      }).catch(error => {
+        console.log("出错")
+        this.newWran("请求预览文件失败")
+      });
     }
   },
   watch: {
