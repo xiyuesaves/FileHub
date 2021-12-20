@@ -46,6 +46,7 @@ export default {
       progressRate: 0, // 进度条位置
       lastRate: 0, // 当前进度条位置
       discRotate: 0, // 唱片旋转角度
+      prevStatic: false, // 拖拽发生前播放器状态
       dragProgress: false, // 拖拽进度条判断
       transitionDelay: "300ms", // 进度条动画补间时长
       currentX: 0, // 当前进度条位置
@@ -176,14 +177,48 @@ export default {
         }
         downV()
       }
+    },
+    holdBtn(e) { // 鼠标按下
+      this.dragProgress = true
+      this.previousX = e.clientX
+      this.lastRate = this.progressRate
+      this.prevStatic = this.isplayMusic
+      if (this.prevStatic) {
+        this.pauseMusic()
+      }
+    },
+    holdMove(e) {
+      if (this.dragProgress) {
+        let coverX = e.clientX - this.previousX,
+          width = this.$refs.progressBar.offsetWidth,
+          revise = coverX / width * 100,
+          rateNum = this.lastRate + revise
+        if (rateNum <= 0) {
+          this.progressRate = 0
+          this.playTime = 0
+        } else if (rateNum >= 100) {
+          this.progressRate = 100
+          this.playTime = Math.floor(this.$refs.audio.duration)
+        } else {
+          this.progressRate = rateNum
+          this.playTime = Math.floor(this.$refs.audio.duration * (rateNum / 100))
+        }
+      }
+    },
+    releaseBtn(e) {
+      if (this.dragProgress) {
+        if (this.prevStatic) {
+          this.pauseMusic()
+        }
+        this.dragProgress = false
+        this.$refs.audio.currentTime = this.playTime
+      }
     }
   },
   watch: {
     selectFile(newName) {
       this.initDisc();
-      // this.showMusicName = this.selectFile
-      // 名称超长判断
-      this.scrollName()
+      this.scrollName(); // 名称超长判断
     },
     dragProgress() {
       if (this.dragProgress) {
@@ -212,7 +247,6 @@ export default {
     // 唱片旋转动画
     let discRotate = (argument) => {
       if (this.isplayMusic) {
-        console.log("a")
         this.discRotate += 0.2
       }
       window.requestAnimationFrame(discRotate);
@@ -220,52 +254,10 @@ export default {
     window.requestAnimationFrame(discRotate);
 
     // pc监听事件
-    let prevStatic = false;
-    this.$refs.drag.addEventListener("mousedown", (e) => {
-        this.dragProgress = true
-        this.previousX = e.clientX
-        this.lastRate = this.progressRate
-        prevStatic = this.isplayMusic
-        if (prevStatic) {
-          this.pauseMusic()
-        }
-    })
-    window.addEventListener("mouseup", (e) => {
-      if (this.dragProgress) {
-        if (prevStatic) {
-          this.pauseMusic()
-        }
-        this.dragProgress = false
-        this.$refs.audio.currentTime = this.playTime
-      }
-    })
-    window.addEventListener("blur", (e) => {
-      if (this.dragProgress) {
-        if (prevStatic) {
-          this.pauseMusic()
-        }
-        this.dragProgress = false
-        this.$refs.audio.currentTime = this.playTime
-      }
-    })
-    window.addEventListener("mousemove", (e) => {
-      if (this.dragProgress) {
-        let coverX = e.clientX - this.previousX,
-          width = this.$refs.progressBar.offsetWidth,
-          revise = coverX / width * 100,
-          rateNum = this.lastRate + revise
-        if (rateNum <= 0) {
-          this.progressRate = 0
-          this.playTime = 0
-        } else if (rateNum >= 100) {
-          this.progressRate = 100
-          this.playTime = Math.floor(this.$refs.audio.duration)
-        } else {
-          this.progressRate = rateNum
-          this.playTime = Math.floor(this.$refs.audio.duration * (rateNum / 100))
-        }
-      }
-    })
+    this.$refs.drag.addEventListener("mousedown", this.holdBtn);
+    window.addEventListener("mouseup", this.releaseBtn);
+    window.addEventListener("blur", this.releaseBtn);
+    window.addEventListener("mousemove",this.holdMove);
     this.$refs.progressBar.addEventListener("click", (e) => {
       this.$refs.audio.currentTime = this.$refs.audio.duration * (e.layerX / this.$refs.progressBar.offsetWidth)
     })
