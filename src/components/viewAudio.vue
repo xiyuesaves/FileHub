@@ -1,5 +1,5 @@
 <template>
-  <div :class="['audio-player',{'no-drop':dragProgress}]">
+  <div :class="['music-player',{'no-drop':dragProgress}]">
     <div class="main-box">
       <!-- 唱片 -->
       <div class="turntable">
@@ -35,7 +35,7 @@
 </template>
 <script>
 export default {
-  props: ["selectFile", "localhost", "newWran"],
+  props: ["selectFile", "newWran", "musicLink", "infoLink"],
   data() {
     return {
       discTexture: "", // 唱片纹理
@@ -54,7 +54,6 @@ export default {
       showMusicName: "", // 显示的音乐名称
       overflowText: false, // 音乐名称是否启用滚动展示
       source: this.axios.CancelToken.source(), // axios防抖
-      musicLink: `${this.localhost}/raw${window.location.pathname}${this.selectFile}`, // 音乐地址
       mediaInformation: "", // 唱片其他信息-艺术家
       isplayMusic: false, // 是否正在播放
       loadInfo: false, // 是否加载完成
@@ -89,7 +88,6 @@ export default {
         }
         turntableColor += `#000000,rgb(${randNum},${randNum},${randNum}),`
       }
-      this.musicLink = `${this.localhost}/raw${window.location.pathname}${this.selectFile}`
       this.getMusicInfo()
       this.discTexture = `radial-gradient(#00000000 68%,#000000 68.1%,#000000 68.5%,rgb(60,60,60) 69%),radial-gradient(#000000 26%,${turntableColor}#000000)`
     },
@@ -98,31 +96,31 @@ export default {
       return this.source.token
     },
     getMusicInfo() { // 获取音乐详情
-      let infoLink = `${this.localhost}/info${window.location.pathname}${this.selectFile}`
+      // let infoLink = `${this.localhost}/info${window.location.pathname}${this.selectFile}`
       if (this.loadInfo) {
         this.source.cancel('结束上一次请求');
       }
       this.loadInfo = true
-      this.axios.get(infoLink, {
+      this.axios.get(this.infoLink, {
         cancelToken: this.newCancelToken()
       }).then((res) => {
         this.loadInfo = false;
         this.discRotate = 0;
         let data = res.data.common
         console.log("接收到专辑信息", data)
-        if (data.title) {
+        if (data.title) { // 音乐名称
           this.showMusicName = data.title
         }
-        if (data.performerInfo) {
+        if (data.performerInfo) { // 创作者信息
           this.mediaInformation = `${data.performerInfo}`
         }
-        if (!data.title) {
+        if (!data.title) { // 如果没有标题则使用文件名
           this.showMusicName = this.selectFile
         }
-        if (data.artist) {
+        if (data.artist) { // 演唱者名称
           this.mediaInformation = `${data.artist}`
         }
-        if (data.picture && data.picture[0]) {
+        if (data.picture && data.picture[0]) { // 专辑封面
           var binary = '',
             bytes = new Uint8Array(data.picture[0].data.data);
           for (var i = 0; i < bytes.byteLength; i++) {
@@ -150,7 +148,6 @@ export default {
     pauseMusic() { // 渐入渐出暂停播放
       this.isplayMusic = !this.isplayMusic
       if (this.isplayMusic) {
-        // console.log("播放 ")
         clearTimeout(this.transitionPause)
         this.$refs.audio.play()
         let upV = () => {
@@ -163,7 +160,6 @@ export default {
         }
         upV()
       } else {
-        // console.log("暂停 ")
         clearTimeout(this.transitionPause)
         let downV = () => {
           this.transitionPause = setTimeout(() => {
@@ -187,7 +183,7 @@ export default {
         this.pauseMusic()
       }
     },
-    holdMove(e) {
+    holdMove(e) { // 拖拽进度条
       if (this.dragProgress) {
         let coverX = e.clientX - this.previousX,
           width = this.$refs.progressBar.offsetWidth,
@@ -205,7 +201,7 @@ export default {
         }
       }
     },
-    releaseBtn(e) {
+    releaseBtn(e) { // 释放进度条
       if (this.dragProgress) {
         if (this.prevStatic) {
           this.pauseMusic()
@@ -229,13 +225,13 @@ export default {
     }
   },
   mounted() {
-    this.initDisc();
+    this.initDisc(); // 初始化播放器
     this.scrollName();
     this.$refs.audio.addEventListener("canplay", () => {
       this.endTime = Math.floor(this.$refs.audio.duration)
     })
     this.$refs.audio.addEventListener("timeupdate", () => {
-      if (!this.dragProgress) {
+      if (!this.dragProgress && this.$refs.audio) { // 执行前先判断元素是否存在
         this.progressRate = ((Math.floor(this.$refs.audio.currentTime) / Math.floor(this.$refs.audio.duration)) * 100) || 0
         this.playTime = Math.floor(this.$refs.audio.currentTime)
       }
@@ -257,7 +253,7 @@ export default {
     this.$refs.drag.addEventListener("mousedown", this.holdBtn);
     window.addEventListener("mouseup", this.releaseBtn);
     window.addEventListener("blur", this.releaseBtn);
-    window.addEventListener("mousemove",this.holdMove);
+    window.addEventListener("mousemove", this.holdMove);
     this.$refs.progressBar.addEventListener("click", (e) => {
       this.$refs.audio.currentTime = this.$refs.audio.duration * (e.layerX / this.$refs.progressBar.offsetWidth)
     })
@@ -271,7 +267,7 @@ export default {
   user-select: none;
 }
 
-.audio-player {
+.music-player {
   width: 100%;
   height: 100%;
   display: flex;
