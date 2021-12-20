@@ -4,7 +4,7 @@
 </template>
 <script>
 export default {
-  props: ["selectFile","newWran"],
+  props: ["rawLink"],
   data() {
     return {
       showText: "",
@@ -13,7 +13,7 @@ export default {
   },
   methods: {
     getRaw() {
-      this.axios.get(`${this.localhost}/raw${window.location.pathname}${this.selectFile}`, {
+      this.axios.get(this.rawLink, {
         // 阻止axios自动格式化json
         transformResponse: (res) => {
           return res;
@@ -27,7 +27,7 @@ export default {
     }
   },
   watch: {
-    selectFile() {
+    rawLink() {
       this.getRaw()
     }
   },
