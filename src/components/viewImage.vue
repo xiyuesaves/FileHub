@@ -3,6 +3,9 @@
     <div ref="imgEl" class="transform-box">
       <img :src="imageSrc">
     </div>
+    <div class="controls">
+      <div title="重置操作" @click="refresh" class="reset iconfont icon-reset"></div>
+    </div>
   </div>
 </template>
 <script>
@@ -43,11 +46,17 @@ export default {
         x: 0,
         y: 0
       }
+      this.zoomDom.style.transition = "all 300ms"
       this.zoomDom.style.transform = `translate(0px, 0px) scale(${this.scale})`;
+      setTimeout(() => {
+        this.zoomDom.style.transition = "all 0ms"
+      })
     },
     init() { // 初始化
       // 判断是否启用缩放
       !this.zoomOption.disabledZoom && this.$refs.imgView.addEventListener('mousewheel', ev => {
+          this.elWidth = this.parentEl.getBoundingClientRect().width; // 获取初始元素宽高
+          this.elHeight = this.parentEl.getBoundingClientRect().height; // 获取初始元素宽高
           const isZoomOut = ev.deltaY < 0; // 缩小
           // 鼠标坐标
           const { x: mouseX, y: mouseY } = ev;
@@ -141,8 +150,8 @@ export default {
     this.zoomDom = this.$refs.imgEl; // 获取缩放元素
     this.zoomDom.style.transformOrigin = "0 0"; // 初始化变形中心点为左上角
     this.parentEl = this.zoomDom.parentElement; // 获取元素父级
-    this.elWidth = this.zoomDom.getBoundingClientRect().width; // 获取初始元素宽高
-    this.elHeight = this.zoomDom.getBoundingClientRect().height; // 获取初始元素宽高
+    this.elWidth = this.parentEl.getBoundingClientRect().width; // 获取初始元素宽高
+    this.elHeight = this.parentEl.getBoundingClientRect().height; // 获取初始元素宽高
     // 初始化
     this.init();
     this.refresh();
@@ -164,7 +173,7 @@ export default {
 .transform-box {
   width: 100%;
   height: 100%;
-  padding: 8px;
+  /*padding: 8px;*/
   display: flex;
   align-items: center;
   justify-content: center;
@@ -175,6 +184,41 @@ img {
   max-width: 100%;
   max-height: 100%;
   pointer-events: none;
+}
+
+.controls {
+  top: 0;
+  right: 0;
+  height: 28px;
+  min-width: 28px;
+  position: absolute;
+  background-color: rgba(223, 223, 223, 0.9);
+  border-radius: 0 0 0 8px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  overflow: hidden;
+}
+
+.controls .iconfont {
+  width: 28px;
+  height: 28px;
+  line-height: 28px;
+  cursor: pointer;
+  text-align: center;
+}
+
+.controls .full-size {
+  font-size: 18px;
+  line-height: 26px;
+}
+
+.controls .reset {
+  font-size: 22px;
+}
+
+.controls .iconfont:active {
+  background-color: rgba(190, 190, 190, .9);
 }
 
 </style>
