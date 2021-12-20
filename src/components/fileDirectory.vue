@@ -200,7 +200,7 @@ export default {
 .file-directory .file-list {
   width: 100%;
   height: 100%;
-  min-height: 190px;
+  min-height: 189px;
 }
 
 .file-directory .file-list.loading {
