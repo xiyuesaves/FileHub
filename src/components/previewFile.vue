@@ -10,8 +10,8 @@
     <div class="content">
       <div :class="['preview-view',{'hidenItem':!showItem}]">
         <download :downloadThisFile="downloadThisFile" :fileIcons="fileIcons" v-if="showPreviewPage(selectFile ? selectFile.split('.').pop() : '') === 'defaultFile'" :selectFile="selectFile" />
-        <viewImage v-if="showPreviewPage(selectFile ? selectFile.split('.').pop() : '') === 'image'" :selectFile="selectFile" />
-        <viewText :newWran="newWran" v-if="showPreviewPage(selectFile ? selectFile.split('.').pop() : '') === 'text'" :selectFile="selectFile" />
+        <viewImage v-if="showPreviewPage(selectFile ? selectFile.split('.').pop() : '') === 'image'" :localhost="localhost" :selectFile="selectFile" />
+        <viewText :newWran="newWran" v-if="showPreviewPage(selectFile ? selectFile.split('.').pop() : '') === 'text'" :localhost="localhost" :selectFile="selectFile" />
         <viewVideo v-if="showPreviewPage(selectFile ? selectFile.split('.').pop() : '') === 'video'" :showPreviewPage="showPreviewPage" :localhost="localhost" :selectFile="selectFile" />
         <viewAudio :newWran="newWran" v-if="showPreviewPage(selectFile ? selectFile.split('.').pop() : '') === 'music'" :localhost="localhost" :selectFile="selectFile" />
       </div>
@@ -48,7 +48,7 @@ import viewVideo from "./viewVideo"
 import viewAudio from "./viewAudio"
 
 export default {
-  props: ["closeMask", "filePath", "fileLists", "selectFile", "fileIcons", "formatSize","changeSelectFile","newWran"],
+  props: ["closeMask", "filePath", "fileLists", "selectFile", "fileIcons", "formatSize", "changeSelectFile", "newWran", "localhost"],
   components: {
     download,
     viewImage,
@@ -70,7 +70,6 @@ export default {
       showNum: 0,
       loadingView: true,
       source: this.axios.CancelToken.source(),
-      localhost: this.$parent.localhost,
       showItem: true
     }
   },
@@ -208,7 +207,9 @@ export default {
 .file-item:hover .button.only-icon {
   opacity: 1;
 }
-
+.file-item:last-child{
+  margin-bottom: -1px;
+}
 .file-item.active {
   background-color: #f6f8fa;
   color: #0969da;
@@ -490,8 +491,8 @@ export default {
 @media (max-width: 990px) {
   .right-item {
     /*display: none;*/
-    width: 0!important;
-    border-left: none!important;
+    width: 0 !important;
+    border-left: none !important;
   }
 
   .content .preview-view {
