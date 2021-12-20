@@ -10,10 +10,10 @@
     <div class="content">
       <div :class="['preview-view',{'hidenItem':!showItem}]">
         <download :downloadThisFile="downloadThisFile" :fileIcons="fileIcons" v-if="showPreviewPage(selectFile ? selectFile.split('.').pop() : '') === 'defaultFile'" :selectFile="selectFile" />
-        <viewImage v-if="showPreviewPage(selectFile ? selectFile.split('.').pop() : '') === 'image'" :localhost="localhost" :selectFile="selectFile" />
-        <viewText :newWran="newWran" v-if="showPreviewPage(selectFile ? selectFile.split('.').pop() : '') === 'text'" :localhost="localhost" :selectFile="selectFile" />
-        <viewVideo v-if="showPreviewPage(selectFile ? selectFile.split('.').pop() : '') === 'video'" :showPreviewPage="showPreviewPage" :localhost="localhost" :selectFile="selectFile" />
-        <viewAudio :newWran="newWran" v-if="showPreviewPage(selectFile ? selectFile.split('.').pop() : '') === 'music'" :localhost="localhost" :selectFile="selectFile" />
+        <viewImage v-if="showPreviewPage(selectFile ? selectFile.split('.').pop() : '') === 'image'" :imageSrc="viewLink"/>
+        <viewText :newWran="newWran" v-if="showPreviewPage(selectFile ? selectFile.split('.').pop() : '') === 'text'" :rawLink="viewLink"/>
+        <viewVideo v-if="showPreviewPage(selectFile ? selectFile.split('.').pop() : '') === 'video'" :videoSrc="viewLink"/>
+        <viewAudio :newWran="newWran" v-if="showPreviewPage(selectFile ? selectFile.split('.').pop() : '') === 'music'" :infoLink="musicInfoLink" :musicLink="viewLink" :localhost="localhost" :selectFile="selectFile" />
       </div>
       <div v-on:keydown.enter="switchSelectFile" :class="['right-item',{'hidenItem':!showItem}]">
         <div class="hidden-item" :title="showItem ? '隐藏侧边栏' : '展开侧边栏'" @click="hidenRightItem"></div>
@@ -69,6 +69,8 @@ export default {
       offsetY: 0,
       showNum: 0,
       loadingView: true,
+      viewLink: "",
+      musicInfoLink: "",
       source: this.axios.CancelToken.source(),
       showItem: true
     }
@@ -118,6 +120,7 @@ export default {
       )
     },
     initView() {
+      this.viewLink = `${this.localhost}/raw${window.location.pathname}${this.selectFile}`;
       this.scrollH = this.itemH * this.fileList.length;
       this.showNum = Math.floor(this.viewH / this.itemH) + 1;
       this.realRender = this.fileList.slice(0, this.showNum);
@@ -187,11 +190,13 @@ export default {
       this.initView()
     },
     selectFile() {
-      this.scrollToFile()
+      this.viewLink = `${this.localhost}/raw${window.location.pathname}${this.selectFile}`;
+      this.musicInfoLink = `${this.localhost}/info${window.location.pathname}${this.selectFile}`;
+      this.scrollToFile();
     }
   },
   mounted() {
-    this.initView()
+    this.initView();
   }
 }
 
