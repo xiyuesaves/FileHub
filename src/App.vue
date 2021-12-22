@@ -279,7 +279,7 @@ export default {
           break
         case "mp3":
         case "flac":
-          return "icon-yinle" // 音乐图标
+          return "icon-music-note" // 音乐图标
           break
         case "txt":
         case "log":
