@@ -30,7 +30,7 @@ export default {
       firstMoveFlag: false, // 第一次移动标记，防止用户第一次按下和松开鼠标但并未移动，第二次移动时 dom 出现闪现的情况
       scale: 1, // 初始缩放值
       zoomOption: { // 配置项
-        interval: 1.1, // 每次缩放步幅
+        interval: 1.2, // 每次缩放步幅
         minScale: 0.1, // 缩放最小值
         maxScale: 50, // 缩放最大值
         slopOver: true, // 是否可以移出元素
