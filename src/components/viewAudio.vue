@@ -570,7 +570,7 @@ export default {
 
 @media (max-width: 630px) {
   .music-player {
-    padding: 0;
+    padding: 18px 14px;
   }
 
   .main-box {
