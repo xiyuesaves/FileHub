@@ -1,5 +1,5 @@
 <template>
-  <div v-if="menuContent" :class="['hiden-menu-button',{showMenu:isOpen}]">
+  <div v-if="menuContent" :class="['menu-btn','hiden-menu-button',{showMenu:isOpen}]">
     <div :class="['mask',{'show-mask':isOpen}]" @click.self="closeMenu()"></div>
     <button :title="title" @click="openMenuFun()" :class="['button',btnClass,{'only-icon':!showText}]">
       <span v-if="icon" :class="['icon','iconfont',icon]"></span>
@@ -12,7 +12,7 @@
       </div>
     </div>
   </div>
-  <button :title="title" v-else :class="['button',btnClass,{'only-icon':!showText}]" @click="clickFun">
+  <button :title="title" v-else :class="['menu-btn','button',btnClass,{'only-icon':!showText}]" @click.stop="clickFunction">
     <span v-if="icon" :class="['icon','iconfont',icon]"></span>
     <span v-if="showText" class="view-text">{{showText}}</span>
     <span v-if="arrow" class="arrow"></span>
@@ -28,6 +28,11 @@ export default {
   },
   inheritAttrs: false,
   methods: {
+    clickFunction(e){
+      if (this.clickFun) {
+        this.clickFun()
+      }
+    },
     closeMenu() {
       // 关闭菜单
       this.isOpen = false
