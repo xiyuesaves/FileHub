@@ -277,6 +277,10 @@ export default {
         case "mpeg":
           return "icon-video" // 视频图标
           break
+        case "mp3":
+        case "flac":
+          return "icon-yinle" // 音乐图标
+          break
         case "txt":
         case "log":
         case "ini":
@@ -363,6 +367,10 @@ export default {
 <style>
 .icon-wenjianjia:before {
   color: #54aeff;
+}
+.icon-yinle{
+  font-size: 18px!important;
+  line-height: 16px!important;
 }
 
 @font-face {

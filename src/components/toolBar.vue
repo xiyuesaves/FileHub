@@ -182,7 +182,7 @@ export default {
 }
 
 .tool-box .title-text {
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 600;
   margin-top: 0;
   margin-bottom: 16px;
