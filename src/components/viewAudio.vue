@@ -176,7 +176,7 @@ export default {
     },
     holdBtn(e) { // 鼠标按下
       this.dragProgress = true
-      this.previousX = e.clientX
+      this.previousX = e.clientX || e.touches[0].clientX
       this.lastRate = this.progressRate
       this.prevStatic = this.isplayMusic
       if (this.prevStatic) {
@@ -185,7 +185,8 @@ export default {
     },
     holdMove(e) { // 拖拽进度条
       if (this.dragProgress) {
-        let coverX = e.clientX - this.previousX,
+        let moveX = e.clientX || e.touches[0].clientX,
+          coverX = moveX - this.previousX,
           width = this.$refs.progressBar.offsetWidth,
           revise = coverX / width * 100,
           rateNum = this.lastRate + revise
@@ -254,10 +255,18 @@ export default {
     window.addEventListener("mouseup", this.releaseBtn);
     window.addEventListener("blur", this.releaseBtn);
     window.addEventListener("mousemove", this.holdMove);
-    this.$refs.progressBar.addEventListener("click", (e) => {
-      this.$refs.audio.currentTime = this.$refs.audio.duration * (e.layerX / this.$refs.progressBar.offsetWidth)
+    this.$refs.progressBar.addEventListener("mousedown", (e) => {
+      this.$refs.audio.currentTime = this.$refs.audio.duration * (e.offsetX / this.$refs.progressBar.offsetWidth)
     })
     // 手机监听事件
+    this.$refs.drag.addEventListener("touchstart", this.holdBtn);
+    window.addEventListener("touchend", this.releaseBtn);
+    window.addEventListener("touchmove", this.holdMove);
+    this.$refs.progressBar.addEventListener("touchstart", (e) => {
+      let rect = e.target.getBoundingClientRect(),
+        x = e.targetTouches[0].pageX - rect.left;
+      this.$refs.audio.currentTime = this.$refs.audio.duration * (x / this.$refs.progressBar.offsetWidth)
+    })
   }
 }
 
@@ -485,6 +494,7 @@ export default {
   height: 100%;
   transform: translateX(-100%);
   background-color: #f95342;
+  pointer-events: none;
   /*transition: transform 300ms;*/
 }
 
@@ -532,6 +542,29 @@ export default {
 
   100% {
     transform: translateX(-50%);
+  }
+}
+
+@media (max-width: 820px) {
+  .turntable {
+    left: 10px;
+    bottom: 10px;
+    width: 60px;
+    height: 60px;
+  }
+
+  .music-name {
+    left: 60px;
+    width: calc(100% - 80px);
+  }
+
+  .other-info {
+    left: 80px;
+  }
+
+  .controls {
+    left: 80px;
+    width: calc(100% - 90px);
   }
 }
 
