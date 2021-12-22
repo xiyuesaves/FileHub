@@ -46,9 +46,8 @@ export default {
   padding: 8px;
   margin: 0;
   width: 100%;
-  height: 100%;
   overflow: auto;
-  max-height: calc(607px - 46px);
+  height: calc(607px - 46px);
 }
 
 .text-view::-webkit-scrollbar-button {

@@ -208,17 +208,6 @@ export default {
   pointer-events: none;
 }
 
-@media (max-width: 820px) {
-  .file-directory .file-list {
-    /*max-height: calc(100vh - 180px);*/
-    /*overflow: auto;*/
-  }
-
-  /* .file-directory .file-list .file-item:hover {
-    background-color: #ffffff;
-  }*/
-}
-
 .file-directory .file-list .file-item {
   width: 100%;
   height: 38px;
@@ -304,9 +293,21 @@ export default {
   box-sizing: border-box;
   color: #666666;
 }
-@media (max-width: 480px) {
-  .file-date{
-    display: none!important;
+
+@media (max-width: 820px) {
+  .file-directory .file-list .file-item .file-detail .file-name .hover-color:hover {
+    color: #000000;
+    text-decoration: none;
+  }
+  .hover-this {
+    background-color: #ffffff;
   }
 }
+
+@media (max-width: 480px) {
+  .file-date {
+    display: none !important;
+  }
+}
+
 </style>

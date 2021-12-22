@@ -98,25 +98,37 @@ export default {
           ev.preventDefault()
         })
 
-        // 鼠标按下去
-        !this.zoomOption.disabledDrag && this.$refs.imgView.addEventListener('mousedown', ev => {
-          this.mx = ev.x;
-          this.my = ev.y;
-          const clientRect = this.zoomDom.getBoundingClientRect()
-          this.newsetWidth = clientRect.width
-          this.newsetHeight = clientRect.height
-          // 鼠标移动
-          document.addEventListener('mousemove', this.mousemove);
-          // 鼠标松开
-          document.addEventListener('mouseup', this.mouseup);
-          // 页面失焦
-          document.addEventListener('blur', this.mouseup);
-        });
+        // 开始移动
+        !this.zoomOption.disabledDrag && this.$refs.imgView.addEventListener('mousedown', this.changeStart);
+      !this.zoomOption.disabledDrag && this.$refs.imgView.addEventListener('touchstart', this.changeStart);
     },
-    mousemove(ev) {
+    changeStart(ev) {
+      this.mx = ev.x || ev.touches[0].clientX;
+      this.my = ev.y || ev.touches[0].clientY;
+      if (ev.type === "touchstart") {
+        document.body.style.overflow = "hidden"
+      }
+      const clientRect = this.zoomDom.getBoundingClientRect()
+      this.newsetWidth = clientRect.width
+      this.newsetHeight = clientRect.height
+      // 鼠标移动
+      document.addEventListener('mousemove', this.changeMove);
+      // 鼠标松开
+      document.addEventListener('mouseup', this.changeUp);
+      // 页面失焦
+      document.addEventListener('blur', this.changeUp);
+
+      // 触摸监听事件
+      document.addEventListener('touchend', this.changeUp);
+      document.addEventListener('touchmove', this.changeMove);
+      ev.stopPropagation()
+    },
+    changeMove(ev) {
+      let changeX = ev.x || ev.touches[0].clientX,
+        changeY = ev.y || ev.touches[0].clientY;
       this.firstMoveFlag = true
-      this.tTop = this.prevTranslateMap.y + (ev.y - this.my)
-      this.tLeft = this.prevTranslateMap.x + (ev.x - this.mx)
+      this.tTop = this.prevTranslateMap.y + (changeY - this.my)
+      this.tLeft = this.prevTranslateMap.x + (changeX - this.mx)
       if (!this.zoomOption.slopOver) {
         if (this.tTop < 0) this.tTop = 0
         if (this.tLeft < 0) this.tLeft = 0
@@ -127,17 +139,22 @@ export default {
       }
       // 设置样式
       this.zoomDom.style.cssText += `transform: translate(${this.tLeft}px, ${this.tTop}px) scale(${this.scale})`;
+      ev.stopPropagation()
     },
-    mouseup() {
+    changeUp() {
+      document.body.style.overflow = ""
       if (this.firstMoveFlag) {
         this.prevTranslateMap = {
           x: this.tLeft,
           y: this.tTop
         }
       }
-      document.removeEventListener('mousemove', this.mousemove);
-      document.removeEventListener('mouseup', this.mouseup);
-      document.removeEventListener('blur', this.mouseup);
+      document.removeEventListener('mousemove', this.changeMove);
+      document.removeEventListener('mouseup', this.changeUp);
+      document.removeEventListener('blur', this.changeUp);
+      // 触摸监听事件
+      document.removeEventListener('touchend', this.changeUp);
+      document.removeEventListener('touchmove', this.changeMove);
     }
   },
   watch: {
@@ -162,7 +179,7 @@ export default {
 <style scoped>
 .img-view {
   width: 100%;
-  height: 100%;
+  height: calc(607px - 46px);
   box-sizing: border-box;
   position: relative;
   overflow: hidden;
@@ -219,6 +236,12 @@ img {
 
 .controls .iconfont:active {
   background-color: rgba(190, 190, 190, .9);
+}
+
+@media (max-width: 480px) {
+  .controls {
+    display: none;
+  }
 }
 
 </style>
