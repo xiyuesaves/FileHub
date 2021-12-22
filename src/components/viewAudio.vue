@@ -283,7 +283,7 @@ export default {
   align-items: center;
   justify-content: center;
   flex-direction: column;
-  padding: 0 20px;
+  padding: 40px 15px;
   box-sizing: border-box;
 }
 
@@ -565,6 +565,17 @@ export default {
   .controls {
     left: 80px;
     width: calc(100% - 90px);
+  }
+}
+
+@media (max-width: 630px) {
+  .music-player {
+    padding: 0;
+  }
+
+  .main-box {
+    max-width: 100%;
+    border: none;
   }
 }
 

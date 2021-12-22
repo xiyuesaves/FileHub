@@ -10,9 +10,9 @@
     <div class="content">
       <div :class="['preview-view',{'hidenItem':!showItem}]">
         <download :downloadThisFile="downloadThisFile" :fileIcons="fileIcons" v-if="showPreviewPage(selectFile ? selectFile.split('.').pop() : '') === 'defaultFile'" :selectFile="selectFile" />
-        <viewImage v-if="showPreviewPage(selectFile ? selectFile.split('.').pop() : '') === 'image'" :imageSrc="viewLink"/>
-        <viewText :newWran="newWran" v-if="showPreviewPage(selectFile ? selectFile.split('.').pop() : '') === 'text'" :rawLink="viewLink"/>
-        <viewVideo v-if="showPreviewPage(selectFile ? selectFile.split('.').pop() : '') === 'video'" :videoSrc="viewLink"/>
+        <viewImage v-if="showPreviewPage(selectFile ? selectFile.split('.').pop() : '') === 'image'" :imageSrc="viewLink" />
+        <viewText :newWran="newWran" v-if="showPreviewPage(selectFile ? selectFile.split('.').pop() : '') === 'text'" :rawLink="viewLink" />
+        <viewVideo v-if="showPreviewPage(selectFile ? selectFile.split('.').pop() : '') === 'video'" :videoSrc="viewLink" />
         <viewAudio :newWran="newWran" v-if="showPreviewPage(selectFile ? selectFile.split('.').pop() : '') === 'music'" :infoLink="musicInfoLink" :musicLink="viewLink" :localhost="localhost" :selectFile="selectFile" />
       </div>
       <div v-on:keydown.enter="switchSelectFile" :class="['right-item',{'hidenItem':!showItem}]">
@@ -48,7 +48,7 @@ import viewVideo from "./viewVideo"
 import viewAudio from "./viewAudio"
 
 export default {
-  props: ["closeMask", "filePath", "fileLists", "selectFile", "fileIcons", "formatSize", "changeSelectFile", "newWran", "localhost"],
+  props: ["closeMask", "filePath", "fileLists", "selectFile", "fileIcons", "formatSize", "downloadThisFile", "changeSelectFile", "newWran", "localhost"],
   components: {
     download,
     viewImage,
@@ -76,15 +76,6 @@ export default {
     }
   },
   methods: {
-    downloadThisFile() {
-      let tempa = document.createElement("a")
-      tempa.href = `${this.localhost}/download${window.location.pathname}${this.selectFile}`
-      tempa.style.display = `none`
-      tempa.setAttribute("download", "")
-      document.body.appendChild(tempa)
-      tempa.click()
-      tempa.remove()
-    },
     switchSelectFile(event) {
       console.log(event)
     },
@@ -212,9 +203,11 @@ export default {
 .file-item:hover .button.only-icon {
   opacity: 1;
 }
-.file-item:last-child{
+
+.file-item:last-child {
   margin-bottom: -1px;
 }
+
 .file-item.active {
   background-color: #f6f8fa;
   color: #0969da;
@@ -224,6 +217,7 @@ export default {
   border: solid 1px #d5d8da;
   border-radius: 6px;
   width: 1152px;
+  box-sizing: border-box;
   overflow: hidden;
   max-width: 100%;
   height: 607px;
@@ -502,6 +496,16 @@ export default {
 
   .content .preview-view {
     width: 100%;
+  }
+}
+
+@media (max-width: 630px) {
+  .main-box{
+    height: auto;
+    max-height: 607px;
+  }
+  .right-item {
+    display: none;
   }
 }
 

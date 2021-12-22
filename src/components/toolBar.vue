@@ -1,16 +1,17 @@
 <template>
   <div>
     <div class="tool-box">
-      <p class="title-text">记事板</p>
-      <textarea class="edit-area input-style" v-model="editText" placeholder="记点什么..."></textarea>
-    </div>
-    <div class="tool-box">
-      <p class="title-text">分享</p>
+      <p class="title-text">功能</p>
       <div class="copy-link-box">
-        <input class="input-style copy-link" type="" :value="urlHref" name="">
+        <input class="input-style copy-link" :style="{width: isShow ? `calc(100% - 105px)` : ''}" type="" :value="urlHref" name="">
+        <menuButton v-show="isShow" title="下载" align="center" icon="icon-xiazai" :clickFun="downloadThisFile" />
         <menuButton title="复制链接" align="center" icon="icon-fuzhi" :menuContent="copy" :url="urlHref" />
         <menuButton title="显示二维码" :url="urlHref" :menuContent="QrCode" align="right" icon="icon-erweima" />
       </div>
+    </div>
+    <div class="tool-box">
+      <p class="title-text">同步</p>
+      <textarea class="edit-area input-style" v-model="editText" placeholder="记点什么..."></textarea>
     </div>
     <div class="tool-box" v-if="sliders.length">
       <p class="title-text">统计</p>
@@ -33,11 +34,12 @@ import QrCode from "./QrCode"
 import copy from "./copy"
 
 export default {
-  props: ["statisticsList", "urlHref"],
+  props: ["statisticsList", "urlHref", "selectFile", "downloadThisFile"],
   data() {
     return {
       editText: "",
       sliders: [],
+      isShow: false,
       copy: copy,
       QrCode: QrCode
     }
@@ -47,7 +49,7 @@ export default {
   },
   watch: {
     statisticsList: "updateData",
-    // urlHref: "updateQrCode"
+    selectFile: "showDownloadbtn"
   },
   methods: {
     updateData() {
@@ -99,6 +101,13 @@ export default {
         }
       }
       this.sliders = statisticsData
+    },
+    showDownloadbtn(){
+      if (this.selectFile) {
+        this.isShow = true
+      } else {
+        this.isShow = false
+      }
     }
   },
   mounted() {
@@ -200,7 +209,7 @@ export default {
 .copy-link-box {
   width: 100%;
   height: 32px;
-  margin-bottom: 24px;
+  /*margin-bottom: 24px;*/
   display: flex;
   align-items: center;
   justify-content: space-between;

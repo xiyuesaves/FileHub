@@ -29,6 +29,8 @@ export default {
   flex-direction: column;
   width: 100%;
   height: 100%;
+  padding: 80px 15px 60px;
+  box-sizing: border-box;
 }
 
 .file-icon {

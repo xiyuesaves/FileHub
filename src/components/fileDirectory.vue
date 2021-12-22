@@ -304,5 +304,9 @@ export default {
   box-sizing: border-box;
   color: #666666;
 }
-
+@media (max-width: 480px) {
+  .file-date{
+    display: none!important;
+  }
+}
 </style>

@@ -5,13 +5,13 @@
     <div class="main-view">
       <topTitle :title="title" />
       <actionBar :selectDrive="selectDrive" :rootList="rootList" :switchDirectory="switchDirectory" :createFolder="createFolder" :createFile="createFile" />
-      <fileDirectory v-show="!selectFile" ref="fileDirectory" :formatSize="formatSize" :formatDate="formatDate" :fileIcons="fileIcons" :isLoad="loadFileList" :filePath="filePath" :fileList="fileList" :openFile="openFile" :getFileList="getFileList" />
+      <fileDirectory v-show="!selectFile" ref="fileDirectory" :downloadThisFile="downloadThisFile" :formatSize="formatSize" :formatDate="formatDate" :fileIcons="fileIcons" :isLoad="loadFileList" :filePath="filePath" :fileList="fileList" :openFile="openFile" :getFileList="getFileList" />
       <!-- 文件预览 -->
-      <previewFile :localhost="localhost" :newWran="newWran" v-show="selectFile" :changeSelectFile="changeSelectFile" :filePath="filePath" :fileLists="fileList" :selectFile="selectFile" :fileIcons="fileIcons" :closeMask="closePreviewFile" :formatSize="formatSize" />
+      <previewFile :localhost="localhost" :newWran="newWran" v-show="selectFile" :changeSelectFile="changeSelectFile" :filePath="filePath" :fileLists="fileList" :selectFile="selectFile" :downloadThisFile="downloadThisFile" :fileIcons="fileIcons" :closeMask="closePreviewFile" :formatSize="formatSize" />
       <!-- <popUps v-if="selectFile" :formatSize="formatSize" :isOpen="showPreviewFile" @changeSelectFile="changeSelectFile" :maskContent="previewFile" :filePath="filePath" :fileLists="fileList" :selectFile="selectFile" :fileIcons="fileIcons" :closeMask="closePreviewFile" /> -->
     </div>
     <div class="tool-bar">
-      <toolBar :statisticsList="fileList" :urlHref="url" />
+      <toolBar :downloadThisFile="downloadThisFile" :selectFile="selectFile" :statisticsList="fileList" :urlHref="url" />
     </div>
   </div>
 </template>
@@ -338,7 +338,17 @@ export default {
           this.selectDrive = thisletter
         }
       }
-    }
+    },
+    downloadThisFile(selectFile) { // 文件下载方法
+      selectFile = selectFile || this.selectFile
+      let tempa = document.createElement("a")
+      tempa.href = `${this.localhost}/download${window.location.pathname}${selectFile}`
+      tempa.style.display = `none`
+      tempa.setAttribute("download", "")
+      document.body.appendChild(tempa)
+      tempa.click()
+      tempa.remove()
+    },
   },
   mounted() {
     this.getrootList() // 获取根目录
@@ -403,6 +413,7 @@ button {
 
 @media (max-width: 820px) {
   #app {
+    width: calc(100% - 30px);
     display: block;
   }
 

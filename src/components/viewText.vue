@@ -7,7 +7,7 @@ export default {
   props: ["rawLink"],
   data() {
     return {
-      showText: "",
+      showText: "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n",
       localhost: this.$parent.localhost
     }
   },
@@ -48,6 +48,7 @@ export default {
   width: 100%;
   height: 100%;
   overflow: auto;
+  max-height: calc(607px - 46px);
 }
 
 .text-view::-webkit-scrollbar-button {
@@ -73,5 +74,4 @@ export default {
   background: #0969da;
   color: #ffffff;
 }
-
 </style>
