@@ -4,7 +4,7 @@
   </div>
 </template>
 <script>
-import QRCode from "QRCode"
+import QRCode from "qrcode"
 export default {
   props: ["url"],
   data() {
