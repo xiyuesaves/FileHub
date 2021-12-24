@@ -48,7 +48,7 @@ import viewVideo from "./viewVideo"
 import viewAudio from "./viewAudio"
 
 export default {
-  props: ["closeMask", "filePath", "fileLists", "selectFile", "fileIcons", "formatSize", "downloadThisFile", "changeSelectFile", "newWran", "localhost"],
+  props: ["closeMask", "filePath", "encode", "decode", "fileLists", "selectFile", "fileIcons", "formatSize", "downloadThisFile", "changeSelectFile", "newWran", "localhost"],
   components: {
     download,
     viewImage,
@@ -95,9 +95,7 @@ export default {
     selectOther(fileName) {
       if (fileName !== this.selectFile) {
         this.changeSelectFile(fileName)
-        // this.$emit("changeSelectFile", fileName)
-        let url = window.location
-        history.pushState({ lastPath: url.href }, "", url.href.replace(/\?view=.+$/, `?view=${fileName}`))
+        history.pushState({ lastPath: window.location.href }, "", window.location.href.replace(/\?view=.+$/, `?view=${this.encode(fileName)}`))
       }
     },
     handleScroll(e) {
@@ -111,7 +109,7 @@ export default {
       )
     },
     initView() {
-      this.viewLink = `${this.localhost}/raw${window.location.pathname}${this.selectFile}`;
+      this.viewLink = `${this.localhost}/download${window.location.pathname}${this.encode(this.selectFile)}`;
       this.scrollH = this.itemH * this.fileList.length;
       this.showNum = Math.floor(this.viewH / this.itemH) + 1;
       this.realRender = this.fileList.slice(0, this.showNum);
@@ -181,8 +179,8 @@ export default {
       this.initView()
     },
     selectFile() {
-      this.viewLink = `${this.localhost}/raw${window.location.pathname}${this.selectFile}`;
-      this.musicInfoLink = `${this.localhost}/info${window.location.pathname}${this.selectFile}`;
+      this.viewLink = `${this.localhost}/download${window.location.pathname}${this.encode(this.selectFile)}`;
+      this.musicInfoLink = `${this.localhost}/info${window.location.pathname}${this.encode(this.selectFile)}`;
       this.scrollToFile();
     }
   },
@@ -500,10 +498,11 @@ export default {
 }
 
 @media (max-width: 630px) {
-  .main-box{
+  .main-box {
     height: auto;
     max-height: 607px;
   }
+
   .right-item {
     display: none;
   }

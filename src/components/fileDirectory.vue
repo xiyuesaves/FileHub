@@ -31,8 +31,6 @@
         </div>
       </div>
       <div title="对，这里是空的" class="file-item no-file" v-if="fileList.length == 0">
-        <!-- <p v-if="isLoad">加载中...</p> -->
-        <!-- <p v-else>没有内容</p> -->
         <p>没有内容</p>
       </div>
     </div>
@@ -41,12 +39,12 @@
 <script>
 export default {
   name: "fileDirectory",
-  props: ["filePath", "fileList", "openFile", "getFileList", "isLoad", "fileIcons", "formatSize", "formatDate"],
+  props: ["filePath","decode","encode", "fileList", "openFile", "getFileList", "isLoad", "fileIcons", "formatSize", "formatDate"],
   data() {
     return {
       activeIndex: -1,
       hoverFile: "",
-      pathArr: this.filePath.split("/"),
+      pathArr: this.decode(this.filePath).split("/"),
       lastPath: "",
       realRender: [],
       scrollH: 0,
@@ -59,7 +57,7 @@ export default {
   },
   watch: {
     filePath() {
-      this.pathArr = this.filePath.split("/")
+      this.pathArr = this.decode(this.filePath).split("/")
     },
     fileList() {
       this.viewH = this.fileList.length * 38 > window.screen.availHeight ? window.screen.availHeight : this.fileList.length * 38;
@@ -75,6 +73,7 @@ export default {
       for (var i = 0; i < path; i++) {
         newPath += this.pathArr[i] + "/"
       }
+      newPath = this.decode(newPath)
       console.log(newPath)
       this.getFileList(newPath)
     },
