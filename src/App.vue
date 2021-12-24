@@ -194,7 +194,8 @@ export default {
       // 处理链接路径的错误
       if (replyPath.substr(-1) !== "/") {
         console.log("链接末尾添加/")
-        history.replaceState({ lastPath: window.location.href }, "", encodeURI(`${this.urlHost}/${replyPath}/`))
+        replyPath += "/";
+        history.replaceState({ lastPath: window.location.href }, "", encodeURI(`${this.urlHost}/${replyPath}`))
         this.urlPath = replyPath
       }
       if (this.loadFileList) {
@@ -213,7 +214,6 @@ export default {
         if (res.data.status === "success") {
           this.fileList = res.data.data
           window.scrollTo(0, 0) // 请求成功后滚动到页面顶部
-          console.log(this.urlPath, this.filePath)
           if (this.urlPath !== this.filePath) {
             if (!history.state) {
               console.log("重写当前地址")
