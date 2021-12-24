@@ -4,7 +4,7 @@
 </template>
 <script>
 export default {
-  props: ["rawLink"],
+  props: ["rawLink","newWran"],
   data() {
     return {
       showText: "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n",
