@@ -91,7 +91,7 @@ export default {
     },
     getrootList() {
       this.axios.get(`${this.localhost}/getRootList`).then(res => {
-        console.log("已获取根目录", res)
+        // console.log("取根目录", res)
         if (res.data.status == 'success') {
           this.rootList = res.data.data
           if (this.validRoot(this.urlPath.split("/")[0])) { // 判断根目录是否有效
@@ -105,7 +105,7 @@ export default {
                 this.getFileList(this.filePath, () => {
                   this.selectFile = this.gerURLSearch();
                   if (this.selectFile) { // 如果有选中文件，则唤起预览窗口
-                    console.log("唤起预览页面")
+                    // console.log("唤起预览页面")
                     this.showPreview(this.selectFile)
                   }
                 })
@@ -122,9 +122,11 @@ export default {
             this.getFileList(this.selectDrive)
           }
         } else {
-          console.log("重新获取")
-          setTimeout(this.getrootList, 1500)
+          this.newWran("请求信息错误")
         }
+      }, err => {
+        this.newWran("获取根目录失败,请检查网络连接")
+        console.log(err)
       })
     },
     openFile(target) {
@@ -136,20 +138,19 @@ export default {
         default:
           let url = window.location
           let nosearchUrl = url.href.replace(url.search, "")
-          console.log("打开文件预览", `${nosearchUrl}?view=${this.encode(target.name)}`)
           history.pushState({ lastPath: url.href }, "", `${nosearchUrl}?view=${this.encode(target.name)}`)
           this.showPreview(target.name)
           this.url = window.location.href
           break
       }
     },
-    showPreview(name) {
-      console.log("预览文件", name)
+    showPreview(fileName) {
+      console.log("预览文件", fileName)
       this.showPreviewFile = true;
-      this.selectFile = name;
+      this.selectFile = fileName;
     },
     changeSelectFile(fileName) {
-      console.log("切换预览文件", name)
+      console.log("切换预览文件", fileName)
       this.url = window.location.href
       this.selectFile = fileName
     },
@@ -157,7 +158,7 @@ export default {
       this.source = this.axios.CancelToken.source()
       return this.source.token
     },
-    encode(str) {
+    encode(str) { // 转义特殊字符
       if (str) {
         return str.replace(/%|#/g, str => {
           switch (str) {
@@ -173,7 +174,7 @@ export default {
         return str
       }
     },
-    decode(str) {
+    decode(str) { // 解码转义字符串
       if (str) {
         return str.replace(/%25|%23/g, function(str) {
           switch (str) {
@@ -202,7 +203,7 @@ export default {
         this.source.cancel('结束上一次请求');
       }
       this.loadFileList = true
-      console.log("获取路径内容", replyPath)
+      console.log("获取路径", replyPath)
       this.axios.post(`${this.localhost}/path`, {
         data: {
           path: replyPath
@@ -210,21 +211,21 @@ export default {
       }).then(res => {
         this.filePath = replyPath
         this.loadFileList = false
-        console.log("请求结束", res.data)
+        console.log("获取路径内容", res.data)
         if (res.data.status === "success") {
           this.fileList = res.data.data
           window.scrollTo(0, 0) // 请求成功后滚动到页面顶部
           if (this.urlPath !== this.filePath) {
             if (!history.state) {
-              console.log("重写当前地址")
+              console.log("获取路径成功_重写地址")
               history.replaceState({ lastPath: window.location.href }, "", encodeURI(`${this.urlHost}/${replyPath}`))
             } else {
-              console.log("前进地址")
+              console.log("获取路径成功_前进地址")
               history.pushState({ lastPath: window.location.href }, "", encodeURI(`${this.urlHost}/${replyPath}`))
             }
             this.urlPath = replyPath
           } else {
-            console.log("不修改路径")
+            console.log("获取路径成功_不修改地址")
           }
           this.url = window.location.href
           if (callback) { // 回调
@@ -236,51 +237,36 @@ export default {
           this.filePath = lastPath
           switch (res.data.error.code) {
             case "EPERM":
-              console.log("没有权限")
-              this.showMask = true
-              this.maskContent = error
+              console.log("获取路径失败_没有权限")
               this.newWran("没有访问权限")
               break
             case "ENOENT":
-              console.log("路径不存在")
-              this.showMask = true
-              this.maskContent = error
+              console.log("获取路径失败_路径不存在")
               this.newWran("路径不存在")
               break
             default:
-              console.log("未知错误:", res.data.error)
-              this.showMask = true
-              this.maskContent = error
-              this.attrData = {
-                errText: `未知错误:${res.data.error.code}`
-              }
+              console.log("获取路径失败_未知错误:", res.data.error)
+              this.newWran(`未知错误:${res.data.error.code}`)
               break
           }
-          console.log("请求文件出错", res.data.error.code)
+          console.log("获取路径失败_请求文件出错", res.data.error.code)
         }
       }, err => {
-        if (!err.message) {
-          console.log("请求出错", err)
-          this.showMask = true
-          this.maskContent = error
-          this.attrData = {
-            errText: `网络故障`
-          }
-        } else {
-          console.log(err)
-        }
+        this.newWran(`无法请求服务器,请检查网络连接`)
+        console.log(err)
       })
     },
     closePreviewFile() { // 关闭预览窗口
       this.showPreviewFile = false;
       let viewFile = this.gerURLSearch();
-      console.log("关闭预览窗口",viewFile)
       if (viewFile === "") {
         console.log("关闭窗口_重写路径")
         history.replaceState({ lastPath: this.url }, "", `${window.location.origin}${window.location.pathname}`)
       } else if (viewFile !== null) {
         console.log("关闭窗口_新增路径")
         history.pushState({ lastPath: window.location.href }, "", `${window.location.origin}${window.location.pathname}`)
+      } else {
+        console.log("关闭窗口_不修改路径")
       }
       this.selectFile = ""
     },
@@ -346,13 +332,12 @@ export default {
     formatDate(time) { // 格式化时间
       let date = new Date(time);
       return `${date.getFullYear()}/${fullZero(date.getMonth()+1)}/${fullZero(date.getDay())} ${fullZero(date.getHours())}:${fullZero(date.getMinutes())}:${fullZero(date.getSeconds())}`
-
       function fullZero(num) {
         let str = "00" + num
         return str.slice(-2)
       }
     },
-    gerURLSearch(){
+    gerURLSearch() {
       if (window.location.search === "") {
         return null;
       } else {
