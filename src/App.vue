@@ -72,7 +72,7 @@ export default {
     },
     switchDirectory(rootPath) {
       console.log("切换到", rootPath)
-      this.selectDrive = rootPath
+      this.selectDrive = this.decode(rootPath)
       this.getFileList(rootPath)
     },
     createFile() {
@@ -95,12 +95,12 @@ export default {
         if (res.data.status == 'success') {
           this.rootList = res.data.data
           if (this.validRoot(this.urlPath.split("/")[0])) { // 判断根目录是否有效
-            let urlLetter = this.urlPath.split("/")[0],
+            let selectDrive = this.decode(this.urlPath.split("/")[0]),
               inLoad = false
             history.replaceState({ lastPath: this.url }, "", encodeURI(this.url))
             for (var i = 0; i < this.rootList.length; i++) {
-              if (this.rootList[i].rootPath === urlLetter) {
-                this.selectDrive = urlLetter
+              if (this.rootList[i].rootPath === selectDrive) {
+                this.selectDrive = selectDrive
                 this.filePath = this.decode(this.urlPath);
                 this.getFileList(this.filePath, () => {
                   this.selectFile = this.gerURLSearch();
@@ -190,7 +190,7 @@ export default {
     getFileList(path, callback) {
       let lastPath = this.filePath,
         lastFileList = this.fileList,
-        replyPath = this.encode(path);
+        replyPath = this.encode(this.decode(path)); // 先解码之前的链接再进行编码
       // 处理链接路径的错误
       if (replyPath.substr(-1) !== "/") {
         console.log("链接末尾添加/")
@@ -371,9 +371,9 @@ export default {
       // 更新当前路径
       if (this.urlPath !== this.filePath) {
         this.getFileList(this.decode(this.urlPath))
-        let thisletter = `${this.urlPath.split("/")[0]}`
-        if (thisletter && this.selectDrive !== thisletter) {
-          this.selectDrive = thisletter
+        let selectDrive = this.decode(this.urlPath.split("/")[0])
+        if (selectDrive && this.selectDrive !== selectDrive) {
+          this.selectDrive = selectDrive
         }
       }
     },

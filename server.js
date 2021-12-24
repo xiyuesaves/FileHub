@@ -8,7 +8,7 @@ const mm = require('music-metadata');
 
 // 根目录,显示路径不能出现'/#'
 const rootList = [
-  { showPath: "1233", realPath: "C:/" }
+  { showPath: "##22%%", realPath: "C:/" }
 ]
 let showPath = [] // 展示目录
 for (var i = 0; i < rootList.length; i++) {
@@ -251,6 +251,6 @@ function getRealPath(urlPath) {
     };
   };
   let realPath = path.join(pathArr.join("/"));
-  // console.log("转换地址", urlPath, realPath)
+  console.log("转换地址", urlPath, realPath)
   return realPath;
 }
