@@ -4,7 +4,7 @@
 </template>
 <script>
 export default {
-  props: ["rawLink","newWran"],
+  props: ["rawLink", "newWran"],
   data() {
     return {
       showText: "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n",
@@ -47,7 +47,13 @@ export default {
   margin: 0;
   width: 100%;
   overflow: auto;
-  height: calc(507px - 46px);
+  height: calc(607px - 46px);
+}
+
+@media (max-width: 630px) {
+  .text-view {
+    height: calc(507px - 46px);
+  }
 }
 
 .text-view::-webkit-scrollbar-button {
@@ -73,4 +79,5 @@ export default {
   background: #0969da;
   color: #ffffff;
 }
+
 </style>
