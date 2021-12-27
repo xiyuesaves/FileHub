@@ -47,7 +47,7 @@ export default {
   margin: 0;
   width: 100%;
   overflow: auto;
-  height: calc(607px - 46px);
+  height: calc(507px - 46px);
 }
 
 .text-view::-webkit-scrollbar-button {
