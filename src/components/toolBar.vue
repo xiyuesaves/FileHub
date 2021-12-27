@@ -32,6 +32,7 @@
 import menuButton from "./menuButton"
 import QrCode from "./QrCode"
 import copy from "./copy"
+import md5 from 'js-md5'
 
 export default {
   props: ["statisticsList", "urlHref", "selectFile", "downloadThisFile"],
@@ -77,6 +78,15 @@ export default {
         statisticsData[i].width = (statisticsData[i].num / totalNum * 100).toFixed(2)
       }
 
+      function hashCode(str) {
+        var hash = 0;
+        for (var i = 0; i < str.length; i++) {
+          hash = str.charCodeAt(i) + ((hash << 5) - hash);
+        }
+        console.log(hash.toString(16))
+        return hash.toString(16);
+      }
+
       function getColor(type) {
         switch (type) {
           case "floder":
@@ -92,17 +102,12 @@ export default {
             return "#456268"
             break
           default:
-            let randNum = Math.random()
-            if (randNum <= 0.064 || randNum === 1) {
-              return "#D67FFF";
-            } else {
-              return '#' + (randNum  * 0xffffff << 0).toString(16);
-            }
+            return '#' + md5(type).substr(3,6);
         }
       }
       this.sliders = statisticsData
     },
-    showDownloadbtn(){
+    showDownloadbtn() {
       if (this.selectFile) {
         this.isShow = true
       } else {
