@@ -83,7 +83,7 @@ export default {
     },
     validRoot(path) { // 判断根目录是否有效
       for (var i = 0; i < this.rootList.length; i++) {
-        if (this.rootList[i].rootPath === path) {
+        if (this.rootList[i].rootPath === this.decode(path)) {
           return true;
         };
       };
@@ -91,7 +91,7 @@ export default {
     },
     getrootList() {
       this.axios.get(`${this.localhost}/getRootList`).then(res => {
-        // console.log("取根目录", res)
+        console.log("取根目录", res.data)
         if (res.data.status == 'success') {
           this.rootList = res.data.data
           if (this.validRoot(this.urlPath.split("/")[0])) { // 判断根目录是否有效
