@@ -1,7 +1,7 @@
 <template>
   <div :class="['main-box',{'full-box':isFullSize}]">
     <div class="box-head">
-      <p class="view-text">文件预览</p>
+      <p class="view-text">{{selectFile}}</p>
       <div class="controls">
         <!-- <button :title="isFullSize ? '恢复' : '最大化'" @click="isFullSize = !isFullSize" :class="['btn','iconfont',{'icon-maximizezuidahua':!isFullSize,'icon-huanyuan':isFullSize}]"></button> -->
         <button title="关闭" @click="closeMask" class="btn iconfont icon-guanbi close"></button>
@@ -240,8 +240,13 @@ export default {
 }
 
 .view-text {
+  width: calc(100% - 32px);
   margin: 0;
   user-select: none;
+  display: block;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
 }
 
 .iconfont {
