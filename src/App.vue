@@ -1,5 +1,6 @@
 <template>
   <div @scroll="fileListScroll" id="app">
+    <login :localhost="localhost" :loginFun="login" />
     <!-- 报错提醒 -->
     <warning :showWarn="showWarn" />
     <div class="main-view">
@@ -11,23 +12,25 @@
       <!-- <popUps v-if="selectFile" :formatSize="formatSize" :isOpen="showPreviewFile" @changeSelectFile="changeSelectFile" :maskContent="previewFile" :filePath="filePath" :fileLists="fileList" :selectFile="selectFile" :fileIcons="fileIcons" :closeMask="closePreviewFile" /> -->
     </div>
     <div class="tool-bar">
-      <toolBar :downloadThisFile="downloadThisFile" :selectFile="selectFile" :statisticsList="fileList" :urlHref="url" />
+      <toolBar :downloadThisFile="downloadThisFile" :localhost="localhost" :selectFile="selectFile" :statisticsList="fileList" :urlHref="url" />
     </div>
   </div>
 </template>
 <script>
-import topTitle from './components/topTitle'
-import actionBar from './components/actionBar'
-import fileDirectory from './components/fileDirectory'
-import toolBar from './components/toolBar'
-import popUps from './components/popUps'
-import error from './components/error'
-import previewFile from './components/previewFile'
-import warning from './components/warning'
+import topTitle from './components/topTitle';
+import actionBar from './components/actionBar';
+import fileDirectory from './components/fileDirectory';
+import toolBar from './components/toolBar';
+import popUps from './components/popUps';
+import error from './components/error';
+import previewFile from './components/previewFile';
+import warning from './components/warning';
+import login from './components/login';
 
 export default {
   name: 'App',
   components: {
+    login,
     topTitle,
     actionBar,
     fileDirectory,
@@ -57,7 +60,7 @@ export default {
     }
   },
   methods: {
-    newWran(str) {
+    newWran(str, delayTime = 1.5) {
       this.rarnKey++
       this.showWarn.unshift({
         str: str,
@@ -65,7 +68,7 @@ export default {
       })
       setTimeout(() => {
         this.showWarn.pop()
-      }, 1500)
+      }, delayTime * 1000)
     },
     fileListScroll() {
       this.$refs.fileDirectory.handleScroll()
@@ -92,7 +95,7 @@ export default {
     getrootList() {
       this.axios.get(`${this.localhost}/getRootList`).then(res => {
         console.log("取根目录", res.data)
-        if (res.data.status == 'success') {
+        if (res.data.status) {
           this.rootList = res.data.data
           if (this.validRoot(this.urlPath.split("/")[0])) { // 判断根目录是否有效
             let selectDrive = this.decode(this.urlPath.split("/")[0]),
@@ -122,10 +125,18 @@ export default {
             this.getFileList(this.selectDrive)
           }
         } else {
-          this.newWran("请求信息错误")
+          switch (res.data.code) {
+            case 0:
+              this.newWran("请先登录");
+              this.islogin = false;
+              break;
+            case 1:
+              this.newWran("配置信息有误请检查", 30)
+              break;
+          }
         }
       }, err => {
-        this.newWran("获取根目录失败,请检查网络连接")
+        this.newWran("请求失败,请检查网络连接", 30)
         console.log(err)
       })
     },
@@ -332,6 +343,7 @@ export default {
     formatDate(time) { // 格式化时间
       let date = new Date(time);
       return `${date.getFullYear()}/${fullZero(date.getMonth()+1)}/${fullZero(date.getDay())} ${fullZero(date.getHours())}:${fullZero(date.getMinutes())}:${fullZero(date.getSeconds())}`
+
       function fullZero(num) {
         let str = "00" + num
         return str.slice(-2)
@@ -372,8 +384,13 @@ export default {
       tempa.click()
       tempa.remove()
     },
+    login() { // 判断登录信息
+
+    }
   },
   mounted() {
+    console.log(this.axios.defaults.withCredentials)
+    this.login(); // 判断登录信息
     this.getrootList() // 获取根目录
     window.addEventListener("scroll", this.fileListScroll, true) // 监听全局滚动事件
     window.addEventListener('popstate', () => { // 监听浏览器前进返回事件

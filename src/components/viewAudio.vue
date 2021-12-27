@@ -256,6 +256,7 @@ export default {
     window.addEventListener("blur", this.releaseBtn);
     window.addEventListener("mousemove", this.holdMove);
     this.$refs.progressBar.addEventListener("mousedown", (e) => {
+      console.log("触发监听")
       this.$refs.audio.currentTime = this.$refs.audio.duration * (e.offsetX / this.$refs.progressBar.offsetWidth)
     })
     // 手机监听事件

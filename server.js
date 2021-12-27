@@ -3,12 +3,17 @@ const fs = require('fs');
 const path = require('path');
 const app = express();
 const cors = require("cors");
+const cookieParser = require('cookie-parser')
+const session = require('express-session')
 const bodyParser = require("body-parser");
 const mm = require('music-metadata');
 
 // 根目录,显示路径不能出现'/#'
 const rootList = [
-  { showPath: "##22%%", realPath: "C:/" }
+  { showPath: "桌面", realPath: "C:/Users/admin HR/Desktop/" },
+  { showPath: "D盘", realPath: "D:/" },
+  { showPath: "#测试", realPath: "D:/" },
+  { showPath: "视频", realPath: "D:/ffmpeg/bin/" },
 ]
 let showPath = [] // 展示目录
 for (var i = 0; i < rootList.length; i++) {
@@ -18,18 +23,39 @@ for (var i = 0; i < rootList.length; i++) {
 }
 
 app.use(bodyParser.json());
+app.use(cookieParser());
+app.use(session({
+  secret: 'xiyuesaves',
+  resave: false,
+  saveUninitialized: true,
+  cookie:{
+    maxAge: 604800
+  }
+}));
 app.use(cors());
 
 app.get('/getRootList', function(req, res) {
-  console.log("请求根目录")
-  if (rootList.length) {
-    res.json({
-      status: "success",
-      data: showPath
-    })
+    console.log("判断登录",req.session.islogin)
+  if (req.session.islogin) {
+    console.log("请求根目录")
+    if (rootList.length) {
+      res.json({
+        status: true,
+        data: showPath
+      })
+    } else {
+      res.json({
+        status: false,
+        code: 1,
+        msg: "配置信息错误"
+      })
+    }
   } else {
+    req.session.islogin = false
     res.json({
-      status: "false"
+      status: false,
+      code: 0,
+      msg: "需要登录"
     })
   }
 });
@@ -82,94 +108,43 @@ app.post('/path', function(req, res) {
   }
 })
 
-// app.get('/path/*', function(req, res) {
-//   let path = getRealPath(req.url.replace('/path/', ''))
-//   console.log("获取路径", path)
-//   if (authorizedRootDirectory(path)) {
-//     try {
-//       let list = fs.readdirSync(path),
-//         listDetail = [];
-//       for (var i = 0; i < list.length; i++) {
-//         try {
-//           let fileDetail = fs.statSync(`${path}/${list[i]}`)
-//           listDetail.push({
-//             type: fileDetail.isDirectory() ? "floder" : getFileType(list[i]),
-//             name: list[i],
-//             size: fileDetail.size,
-//             date: fileDetail.ctime
-//           })
-//         } catch (err) {}
-//       }
-//       listDetail.sort((a, b) => {
-//         if (a.type == "floder" && b.type !== "floder") {
-//           return -1
-//         } else {
-//           return 1
-//         }
-//       })
-//       res.json({
-//         status: "success",
-//         data: listDetail
-//       })
-//     } catch (err) {
-//       console.log("文件权限错误")
-//       res.json({
-//         status: "faild",
-//         error: err
-//       })
-//     }
-//   } else {
-//     console.log("拒绝未授权目录的查看请求")
-//     res.json({
-//       status: "faild",
-//       error: {
-//         code: "EPERM"
-//       }
-//     })
-//   }
-// });
-
 // 下载文件接口
 app.get('/download/*', function(req, res) {
   // 实现文件下载
   let path = getRealPath(req.url.replace("/download/", ""))
   if (authorizedRootDirectory(path)) {
-    console.log("获取文件",path)
+    console.log("获取文件", path)
     try {
-      let stats = fs.statSync(path);
-      let fileName = req.url.split("/").pop();
-      if (stats.isFile()) {
-        let range = req.headers.range
-        // 判断是否是分段下载
-        if (range) {
-          let [, start, end] = range.match(/(\d*)-(\d*)/),
-            total = stats.size;
-          start = start ? parseInt(start) : 0;
-          end = end ? parseInt(end) : total - 1;
-          res.status(206);
-          res.set({
-            'Content-Type': 'application/octet-stream',
-            'Accept-Ranges': "bytes",
-            'Content-Range': `bytes ${start}-${end}/${total}`,
-            'Content-Length': stats.size
-          });
-          fs.createReadStream(path, { start, end }).pipe(res);
-        } else {
-          res.set({
-            'Content-Type': 'application/octet-stream',
-            'Content-Disposition': 'attachment; filename=' + fileName,
-            'Content-Length': stats.size
-          });
-          fs.createReadStream(path).pipe(res);
-        }
+      // 判断文件是否有读取权限 如果没有就创建读取流try都没法阻止进程崩溃
+      fs.accessSync(path, fs.constants.R_OK);
+      let stats = fs.statSync(path),
+        fileName = req.url.split("/").pop(),
+        range = req.headers.range;
+      // 判断是否是分段下载
+      if (range) {
+        let [, start, end] = range.match(/(\d*)-(\d*)/),
+          total = stats.size;
+        start = start ? parseInt(start) : 0;
+        end = end ? parseInt(end) : total - 1;
+        res.status(206);
+        res.set({
+          'Content-Type': 'application/octet-stream',
+          'Accept-Ranges': "bytes",
+          'Content-Range': `bytes ${start}-${end}/${total}`,
+          'Content-Length': stats.size
+        });
+        fs.createReadStream(path, { start, end }).pipe(res);
       } else {
-        console.log("路径不是文件或没有权限")
-        res.status(404);
-        res.end();
+        res.set({
+          'Content-Type': 'application/octet-stream',
+          'Content-Disposition': 'attachment; filename=' + fileName,
+          'Content-Length': stats.size
+        });
+        fs.createReadStream(path).pipe(res);
       }
     } catch (err) {
-      console.log("没有找到该文件")
-      res.status(404);
+      console.log("没有读取权限")
+      res.status(403);
       res.end();
     }
   } else {
@@ -183,7 +158,7 @@ app.get('/download/*', function(req, res) {
 app.get('/info/*', async function(req, res) {
   let path = getRealPath(req.url.replace("/info/", ""))
   if (authorizedRootDirectory(path)) {
-    console.log("获取媒体信息",path)
+    console.log("获取媒体信息", path)
     try {
       let stats = fs.statSync(path);
       if (stats.isFile()) {
@@ -208,7 +183,11 @@ app.get('/info/*', async function(req, res) {
 
 // 文件预览接口
 for (var i = 0; i < rootList.length; i++) {
-  app.use(encodeURI(`/raw/${rootList[i].showPath.replace(/\/$/,"")}`), express.static(`${rootList[i].realPath}`));
+  app.get(encode(`/raw/${rootList[i].showPath.replace(/\/$/,"/*").replace(/$/,"/*")}`), (req, res, next) => {
+    console.log("请求源文件", req.path)
+    let path = getRealPath(req.path)
+  })
+  app.use(encode(`/raw/${rootList[i].showPath.replace(/\/$/,"")}`), express.static(`${rootList[i].realPath}`));
 }
 
 app.use("/static", express.static('dist/static'));
@@ -251,6 +230,24 @@ function getRealPath(urlPath) {
     };
   };
   let realPath = path.join(pathArr.join("/"));
-  console.log("转换地址", urlPath, realPath)
+  // console.log("转换地址", urlPath, realPath)
   return realPath;
+}
+
+// 编码函数
+function encode(str) { // 转义特殊字符
+  if (str) {
+    return encodeURI(str.replace(/%|#/g, str => {
+      switch (str) {
+        case "%":
+          return "%25";
+        case "#":
+          return "%23";
+        default:
+          return str;
+      }
+    }))
+  } else {
+    return str
+  }
 }

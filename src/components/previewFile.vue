@@ -109,7 +109,7 @@ export default {
       )
     },
     initView() {
-      this.viewLink = `${this.localhost}/download${window.location.pathname}${this.encode(this.selectFile)}`;
+      this.viewLink = `${this.localhost}/raw${window.location.pathname}${this.encode(this.selectFile)}`;
       this.scrollH = this.itemH * this.fileList.length;
       this.showNum = Math.floor(this.viewH / this.itemH) + 1;
       this.realRender = this.fileList.slice(0, this.showNum);
@@ -179,7 +179,7 @@ export default {
       this.initView()
     },
     selectFile() {
-      this.viewLink = `${this.localhost}/download${window.location.pathname}${this.encode(this.selectFile)}`;
+      this.viewLink = `${this.localhost}/raw${window.location.pathname}${this.encode(this.selectFile)}`;
       this.musicInfoLink = `${this.localhost}/info${window.location.pathname}${this.encode(this.selectFile)}`;
       this.scrollToFile();
     }

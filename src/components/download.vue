@@ -40,6 +40,7 @@ export default {
 
 .selFile {
   color: #666666;
+  text-align: center;
   margin-bottom: 60px !important;
   max-width: calc(100% - 60px);
   overflow: hidden;
