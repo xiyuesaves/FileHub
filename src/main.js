@@ -6,15 +6,15 @@ import VueClipboard from 'vue-clipboard2'
 import App from './App'
 import axios from 'axios'
 import VueAxios from 'vue-axios'
-import VueCookies from 'vue-cookies'
 
 import VueVideoPlayer from 'vue-video-player'
 
 import 'video.js/dist/video-js.css'
 import './assets/iconfont.css'
 
+axios.defaults.withCredentials = true; // 设置axios跨域
+
 Vue.use(VueVideoPlayer);
-Vue.use(VueCookies);
 Vue.use(VueAxios, axios);
 Vue.use(VueClipboard);
 Vue.config.productionTip = false
