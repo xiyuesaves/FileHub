@@ -95,7 +95,7 @@ export default {
     selectOther(fileName) {
       if (fileName !== this.selectFile) {
         this.changeSelectFile(fileName)
-        history.pushState({ lastPath: window.location.href }, "", window.location.href.replace(/\?view=.+$/, `?view=${this.encode(fileName)}`))
+        history.pushState({ lastPath: window.location.href }, "", window.location.href.replace(/\?view=.+$/, `?view=${this.encode(encodeURI(fileName))}`))
       }
     },
     handleScroll(e) {
@@ -109,7 +109,7 @@ export default {
       )
     },
     initView() {
-      this.viewLink = `${this.localhost}/raw${window.location.pathname}${this.encode(this.selectFile)}`;
+      this.viewLink = `${this.localhost}/raw${window.location.pathname}${this.encode(encodeURI(this.selectFile))}`;
       this.scrollH = this.itemH * this.fileList.length;
       this.showNum = Math.floor(this.viewH / this.itemH) + 1;
       this.realRender = this.fileList.slice(0, this.showNum);
@@ -179,8 +179,8 @@ export default {
       this.initView()
     },
     selectFile() {
-      this.viewLink = `${this.localhost}/raw${window.location.pathname}${this.encode(this.selectFile)}`;
-      this.musicInfoLink = `${this.localhost}/info${window.location.pathname}${this.encode(this.selectFile)}`;
+      this.viewLink = `${this.localhost}/raw${window.location.pathname}${this.encode(encodeURI(this.selectFile))}`;
+      this.musicInfoLink = `${this.localhost}/info${window.location.pathname}${this.encode(encodeURI(this.selectFile))}`;
       this.scrollToFile();
     }
   },
