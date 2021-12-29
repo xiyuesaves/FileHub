@@ -1,6 +1,9 @@
 <template>
   <div @scroll="fileListScroll" id="app">
+    <!-- 登录组件 -->
     <login v-show="!islogin" :localhost="localhost" :loginFun="login" />
+    <!-- 初始化组件 -->
+    <init />
     <!-- 报错提醒 -->
     <warning :showWarn="showWarn" />
     <div class="main-view">
@@ -26,6 +29,8 @@ import error from './components/error';
 import previewFile from './components/previewFile';
 import warning from './components/warning';
 import login from './components/login';
+import init from './components/init';
+
 
 export default {
   name: 'App',
@@ -37,7 +42,8 @@ export default {
     toolBar,
     popUps,
     warning,
-    previewFile
+    previewFile,
+    init
   },
   data() {
     return {
@@ -346,7 +352,6 @@ export default {
     formatDate(time) { // 格式化时间
       let date = new Date(time);
       return `${date.getFullYear()}/${fullZero(date.getMonth()+1)}/${fullZero(date.getDay())} ${fullZero(date.getHours())}:${fullZero(date.getMinutes())}:${fullZero(date.getSeconds())}`
-
       function fullZero(num) {
         let str = "00" + num
         return str.slice(-2)
@@ -388,10 +393,15 @@ export default {
       tempa.click()
       tempa.remove()
     },
+    init(){
+
+    },
     login() { // 判断登录信息
       this.axios.get(`${this.localhost}/login`).then(res => {
-        console.log("登录判断", res.data.status)
-        if (res.data.status !== false) {
+        console.log("登录判断", res.data)
+        if (res.data.init) {
+          this.init()
+        } else if (res.data.status !== false) {
           this.islogin = true;
           this.getrootList() // 获取根目录
         }
