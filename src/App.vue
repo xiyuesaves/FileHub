@@ -1,6 +1,6 @@
 <template>
   <div @scroll="fileListScroll" id="app">
-    <login :localhost="localhost" :loginFun="login" />
+    <login v-show="!islogin" :localhost="localhost" :loginFun="login" />
     <!-- 报错提醒 -->
     <warning :showWarn="showWarn" />
     <div class="main-view">
@@ -42,6 +42,7 @@ export default {
   data() {
     return {
       title: "测试页面", // 页面标题
+      islogin: false,
       rootList: [], // 文件列表
       source: this.axios.CancelToken.source(),
       selectDrive: "--", // 选中根目录
@@ -100,7 +101,8 @@ export default {
           if (this.validRoot(this.urlPath.split("/")[0])) { // 判断根目录是否有效
             let selectDrive = this.decode(this.urlPath.split("/")[0]),
               inLoad = false
-            history.replaceState({ lastPath: this.url }, "", encodeURI(this.url))
+            // console.log("初始化时重置路径")
+            // history.replaceState({ lastPath: this.url }, "", encodeURI(decodeURI(this.url)))
             for (var i = 0; i < this.rootList.length; i++) {
               if (this.rootList[i].rootPath === selectDrive) {
                 this.selectDrive = selectDrive
@@ -143,13 +145,13 @@ export default {
     openFile(target) {
       switch (target.type) {
         case "floder":
-          console.log("打开文件夹", `${this.filePath}${target.name}/`)
-          this.getFileList(`${this.filePath}${target.name}/`)
+          console.log("打开文件夹", `${this.decode(this.filePath)}${target.name}/`)
+          this.getFileList(`${this.decode(this.filePath)}${target.name}/`)
           break
         default:
           let url = window.location
           let nosearchUrl = url.href.replace(url.search, "")
-          history.pushState({ lastPath: url.href }, "", `${nosearchUrl}?view=${this.encode(target.name)}`)
+          history.pushState({ lastPath: url.href }, "", `${nosearchUrl}?view=${this.encode(encodeURI(target.name))}`)
           this.showPreview(target.name)
           this.url = window.location.href
           break
@@ -171,7 +173,7 @@ export default {
     },
     encode(str) { // 转义特殊字符
       if (str) {
-        return str.replace(/%|#/g, str => {
+        return str.replace(/#/g, str => {
           switch (str) {
             case "%":
               return "%25";
@@ -202,12 +204,13 @@ export default {
     getFileList(path, callback) {
       let lastPath = this.filePath,
         lastFileList = this.fileList,
-        replyPath = this.encode(this.decode(path)); // 先解码之前的链接再进行编码
+        // replyPath = this.encode(path); // 先解码之前的链接再进行编码
+        replyPath = path; // 先解码之前的链接再进行编码
       // 处理链接路径的错误
       if (replyPath.substr(-1) !== "/") {
         console.log("链接末尾添加/")
         replyPath += "/";
-        history.replaceState({ lastPath: window.location.href }, "", encodeURI(`${this.urlHost}/${replyPath}`))
+        history.replaceState({ lastPath: window.location.href }, "", this.encode(encodeURI(`${this.urlHost}/${replyPath}`)))
         this.urlPath = replyPath
       }
       if (this.loadFileList) {
@@ -220,7 +223,7 @@ export default {
           path: replyPath
         }
       }).then(res => {
-        this.filePath = replyPath
+        this.filePath = this.encode(replyPath)
         this.loadFileList = false
         console.log("获取路径内容", res.data)
         if (res.data.status === "success") {
@@ -229,10 +232,10 @@ export default {
           if (this.urlPath !== this.filePath) {
             if (!history.state) {
               console.log("获取路径成功_重写地址")
-              history.replaceState({ lastPath: window.location.href }, "", encodeURI(`${this.urlHost}/${replyPath}`))
+              history.replaceState({ lastPath: window.location.href }, "", this.encode(encodeURI(`${this.urlHost}/${replyPath.replace("","")}`)))
             } else {
               console.log("获取路径成功_前进地址")
-              history.pushState({ lastPath: window.location.href }, "", encodeURI(`${this.urlHost}/${replyPath}`))
+              history.pushState({ lastPath: window.location.href }, "",  this.encode(encodeURI(`${this.urlHost}/${replyPath.replace("","")}`)))
             }
             this.urlPath = replyPath
           } else {
@@ -353,7 +356,7 @@ export default {
       if (window.location.search === "") {
         return null;
       } else {
-        return decodeURI(window.location.search.substring(6));
+        return this.decode(decodeURI(window.location.search.substring(6)));
       };
     },
     checkURL() {
@@ -367,6 +370,7 @@ export default {
       }
       // 更新当前路径
       if (this.urlPath !== this.filePath) {
+        console.log("链接变动更新")
         this.getFileList(this.decode(this.urlPath))
         let selectDrive = this.decode(this.urlPath.split("/")[0])
         if (selectDrive && this.selectDrive !== selectDrive) {
@@ -375,7 +379,7 @@ export default {
       }
     },
     downloadThisFile(selectFile) { // 文件下载方法
-      selectFile = this.encode(selectFile || this.selectFile)
+      selectFile = this.encode(encodeURI(selectFile || this.selectFile))
       let tempa = document.createElement("a")
       tempa.href = `${this.localhost}/download${window.location.pathname}${selectFile}`
       tempa.style.display = `none`
@@ -385,13 +389,17 @@ export default {
       tempa.remove()
     },
     login() { // 判断登录信息
-
+      this.axios.get(`${this.localhost}/login`).then(res => {
+        console.log("登录判断", res.data.status)
+        if (res.data.status !== false) {
+          this.islogin = true;
+          this.getrootList() // 获取根目录
+        }
+      })
     }
   },
   mounted() {
-    console.log(this.axios.defaults.withCredentials)
     this.login(); // 判断登录信息
-    this.getrootList() // 获取根目录
     window.addEventListener("scroll", this.fileListScroll, true) // 监听全局滚动事件
     window.addEventListener('popstate', () => { // 监听浏览器前进返回事件
       this.checkURL()

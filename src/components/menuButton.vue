@@ -163,6 +163,11 @@ export default {
   background-color: #2da44e;
 }
 
+.disable-btn{
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 .btn-green span {
   color: #ffffff;
   border-top-color: rgba(255, 255, 255, 0.8);
