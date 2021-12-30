@@ -1,9 +1,9 @@
 <template>
-  <div @scroll="fileListScroll" id="app">
+  <div @scroll="fileListScroll" id="app" >
     <!-- 登录组件 -->
-    <login v-show="!islogin" :localhost="localhost" :loginFun="login" />
+    <login v-if="!islogin" :localhost="localhost" :loginFun="login" />
     <!-- 初始化组件 -->
-    <init />
+    <init v-if="!isInit" :localhost="localhost" :loginFun="init"/>
     <!-- 报错提醒 -->
     <warning :showWarn="showWarn" />
     <div class="main-view">
@@ -48,7 +48,8 @@ export default {
   data() {
     return {
       title: "测试页面", // 页面标题
-      islogin: false,
+      islogin: true,
+      isInit: true,
       rootList: [], // 文件列表
       source: this.axios.CancelToken.source(),
       selectDrive: "--", // 选中根目录
@@ -400,10 +401,12 @@ export default {
       this.axios.get(`${this.localhost}/login`).then(res => {
         console.log("登录判断", res.data)
         if (res.data.init) {
-          this.init()
+          this.isInit = false;
         } else if (res.data.status !== false) {
           this.islogin = true;
           this.getrootList() // 获取根目录
+        } else {
+          this.islogin = false;
         }
       })
     }
