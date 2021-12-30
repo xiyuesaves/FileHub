@@ -1,5 +1,5 @@
 <template>
-  <div class="mask" @keydown="keys">
+  <div class="mask login" @keydown="keys">
     <div class="center-content">
       <img class="logo" src="../assets/logo.png">
       <p class="login-title">Sign in to FileHub</p>
@@ -47,8 +47,8 @@ export default {
             name: this.userName,
             password: md5(this.password)
           }
-        }).then(ref => {
-          const data = ref.data
+        }).then(res => {
+          const data = res.data
           console.log("登录结果", data)
           if (data.status) {
             // 判断登录成功调用父组件的方法二次验证
@@ -73,7 +73,6 @@ export default {
           this.loginBtn = true;
         })
       }
-
     },
     closeErr() {
       this.showErr = false
