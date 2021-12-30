@@ -1,6 +1,6 @@
 @font-face {
   font-family: "iconfont"; /* Project id  */
-  src: url('iconfont.ttf?t=1640166997401') format('truetype');
+  src: url('iconfont.ttf?t=1640850126043') format('truetype');
 }
 
 .iconfont {
@@ -21,6 +21,10 @@
 
 .icon-tupian:before {
   content: "\e629";
+}
+
+.icon-lajitong:before {
+  content: "\e633";
 }
 
 .icon-music-note:before {
