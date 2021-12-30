@@ -47,17 +47,12 @@ if (!isInit) {
 // 登录接口
 app.post('/login', function(req, res) {
   const data = req.body.data
-  let loginInfo = db.prepare("SELECT disable,userId FROM user WHERE username = ? AND password = ?").get(data.name, data.password)
-  console.log("登录请求", data, loginInfo)
-  if (loginInfo && !loginInfo.disable) {
-    let pathId = db.prepare("SELECT pathId FROM user_path WHERE userId = ?").all(loginInfo.userId)
-    console.log(pathId)
+  let loginInfo = db.prepare("SELECT userLevel,userId FROM user WHERE userName = ? AND password = ?").get(data.name, data.password)
+  console.log("登录请求\n", data, loginInfo)
+  if (loginInfo && loginInfo.userLevel !== 2) {
     req.session.islogin = true;
-    req.session.rootList = [];
-    for (var i = 0; i < pathId.length; i++) {
-      req.session.rootList.push(db.prepare("SELECT showPath,realPath FROM path WHERE pathId = ?").get(pathId[i].pathId))
-    }
-    console.log(req.session.rootList)
+    req.session.rootList = db.prepare("SELECT a.showPath,a.realPath FROM path a, user_path b WHERE a.pathId = b.pathId AND b.userId = ?").all(loginInfo.userId);
+    console.log("该用户的路径列表\n", req.session.rootList)
     res.json({
       status: true
     })
@@ -69,10 +64,53 @@ app.post('/login', function(req, res) {
   }
 })
 
+// 初始化接口 仅在初始化数据库时启用
+if (isInit || false) {
+  app.post('/initialization', function(req, res) {
+    if (isInit || true) {
+      console.log("初始化接口", req.body.data)
+      let userName = req.body.data.name,
+        password = req.body.data.password
+      if (userName.length >= 2 && userName.length <= 8) {
+        if (password.length >= 6 && password.length <= 18) {
+          db.prepare("INSERT INTO user (userName,password,userLevel) VALUES (?,?,0)").run(userName, md5(password))
+          res.json({
+            status: true
+          })
+        } else {
+          res.json({
+            status: false,
+            code: 1,
+            msg: "密码长度错误"
+          })
+        }
+      } else {
+        res.json({
+          status: false,
+          code: 0,
+          msg: "用户名长度错误"
+        })
+      }
+    } else {
+      res.status(403);
+      res.end();
+    }
+  })
+}
+
+
 // 登录验证
 app.all("*", function(req, res, next) {
   // console.log("请求路径",req.path)
-  if (req.session.islogin) {
+  if (isInit || false) {
+    req.session.islogin = false
+    res.json({
+      status: false,
+      init: true,
+      code: -1,
+      msg: "需要初始化"
+    })
+  } else if (req.session.islogin) {
     next();
   } else {
     req.session.islogin = false
@@ -107,7 +145,7 @@ app.get('/getRootList', function(req, res) {
         rootPath: item.showPath
       }
     })
-    console.log("请求根目录", showPath)
+    console.log("请求根目录\n", showPath)
     res.json({
       status: true,
       data: showPath
