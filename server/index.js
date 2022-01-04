@@ -74,6 +74,7 @@ if (isInit || false) {
       if (userName.length >= 2 && userName.length <= 8) {
         if (password.length >= 6 && password.length <= 18) {
           db.prepare("INSERT INTO user (userName,password,userLevel) VALUES (?,?,0)").run(userName, md5(password))
+          req.session.islogin = true
           res.json({
             status: true
           })
