@@ -132,8 +132,12 @@ export default {
         }
         this.scrollName()
       }).catch(err => {
-        this.newWran("请求预览文件失败")
-        console.log("请求专辑信息出错", err)
+        if (err.message !== "结束上一次请求") {
+          this.newWran("请求预览文件失败")
+          console.log("请求专辑信息出错", err)
+        } else {
+          console.log("用户关闭请求")
+        }
       })
     },
     scrollName() { // 超长滚动名称
@@ -243,7 +247,8 @@ export default {
 
     // 唱片旋转动画
     let discRotate = (argument) => {
-      if (this.isplayMusic) {
+      console.log()
+      if (this.isplayMusic && [3, 4].indexOf(this.$refs.audio.readyState) !== -1) {
         this.discRotate += 0.2
       }
       window.requestAnimationFrame(discRotate);
@@ -258,6 +263,7 @@ export default {
     this.$refs.progressBar.addEventListener("mousedown", (e) => {
       console.log("触发监听")
       this.$refs.audio.currentTime = this.$refs.audio.duration * (e.offsetX / this.$refs.progressBar.offsetWidth)
+      this.progressRate = (e.offsetX / this.$refs.progressBar.offsetWidth) * 100
     })
     // 手机监听事件
     this.$refs.drag.addEventListener("touchstart", this.holdBtn);
