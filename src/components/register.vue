@@ -26,7 +26,7 @@ export default {
   },
   methods: {
     verify() {
-          this.changeStep("selectPath")
+          // this.changeStep("selectPath")
       if ((this.userName.length >= 2 && this.userName.length <= 8)) {
         if ((this.password.length >= 6 && this.password.length <= 18)) {
           if (this.tryPassword === this.password) {

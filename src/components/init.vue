@@ -5,7 +5,7 @@
       <p class="login-title">Welcome to FileHub</p>
       <transition name="error">
         <div v-show="showErr" class="err-box">
-          <div class="error">
+          <div class="error" :class="errClass">
             {{errormsg}}<div @click="closeErr" class="iconfont icon-guanbi"></div>
           </div>
         </div>
@@ -25,13 +25,14 @@ export default {
   inheritAttrs: false,
   data() {
     return {
-    	componens:{
-    		register,
-    		selectPath
-    	},
+      componens: {
+        register,
+        selectPath
+      },
       step: register,
       registerBtn: true,
       showErr: false,
+      errClass: "errorRed",
       errormsg: "未知错误",
       userName: "",
       password: "",
@@ -40,14 +41,15 @@ export default {
     }
   },
   methods: {
-    changeStep(comp){
-    	console.log("修改组件",this.componens[comp])
-    	this.step = this.componens[comp]
+    changeStep(comp) {
+      console.log("修改组件", this.componens[comp])
+      this.step = this.componens[comp]
     },
     closeErr() {
       this.showErr = false
     },
-    showErrFun(str) {
+    showErrFun(str, style = "errorRed") {
+      this.errClass = style
       this.errormsg = str
       this.showErr = true
     },
@@ -136,17 +138,26 @@ export default {
 
 .error {
   width: 100%;
-  color: #3c4e64;
   height: 50px;
   padding: 15px 20px;
   font-size: 12px;
-  background-color: #ffebe9;
-  border: solid 1px #ffc1c0;
   border-radius: 6px;
   box-sizing: border-box;
   display: flex;
   align-items: center;
   justify-content: space-between;
+}
+
+.error.errorRed {
+  color: #3c4e64;
+  background-color: #ffebe9;
+  border: solid 1px #ffc1c0;
+}
+
+.error.success {
+  color: #0F3300;
+  background-color: #D6FEDA;
+  border: solid 1px #70FF80;
 }
 
 .error .iconfont {

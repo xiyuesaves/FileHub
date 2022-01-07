@@ -9,11 +9,11 @@
       <div class="input-path" :key="data.pathNum" v-for="(data,index) in pathList">
         <span class="flex-span">
           <p class="">显示路径</p>
-          <input type="text" v-model="data.showPath" placeholder="" name="">
+          <input @click="removeShowErr" :keys="data.pathNum" :class="{'show-error':data.errorShow}" type="text" v-model="data.showPath" placeholder="" name="">
         </span>
         <span class="flex-span">
           <p>真实路径</p>
-          <input type="text" v-model="data.realPath" placeholder="" name="">
+          <input @focus="removeRealErr" :keys="data.pathNum" :class="{'show-error':data.errorReal}" type="text" v-model="data.realPath" placeholder="" name="">
         </span>
         <div @click="deleteThis" :keys="data.pathNum" class="deleteThis" title="删除此条">
           <span class="iconfont icon-lajitong"></span>
@@ -36,28 +36,91 @@ export default {
     }
   },
   methods: {
-    addPath() {
-      this.pathList.unshift({
-        pathNum: new Date().getTime(),
-        showPath: "",
-        realPath: ""
+    removeRealErr(e) {
+      let key = e.target.getAttribute("keys")
+      this.pathList.forEach((obj, i) => {
+        if (obj.pathNum === parseInt(key)) {
+          obj.errorReal = false
+        }
       })
+    },
+    removeShowErr(e) {
+      let key = e.target.getAttribute("keys")
+      this.pathList.forEach((obj, i) => {
+        if (obj.pathNum === parseInt(key)) {
+          obj.errorShow = false
+        }
+      })
+    },
+    addPath() {
+      if (this.registerBtn) {
+        this.pathList.unshift({
+          pathNum: new Date().getTime(),
+          showPath: "",
+          realPath: "",
+          errorShow: false,
+          errorReal: false
+        })
+      }
     },
     deleteThis(e) {
       let key = e.target.getAttribute("keys")
       if (this.pathList.length === 1) {
         this.showErr("至少保留一条路径")
       } else {
-        for (var i = 0; i < this.pathList.length; i++) {
-          if (this.pathList[i].pathNum === parseInt(key)) {
+        this.pathList.forEach((obj, i) => {
+          if (obj.pathNum === parseInt(key)) {
             this.pathList.splice(i, 1)
           }
-        }
+        })
       }
     },
     checkPath() {
-
-      this.changeStep("register")
+      if (this.registerBtn) {
+        let checkOk = true;
+        this.pathList.forEach(obj => {
+          if (obj.showPath.length) {
+            obj.errorShow = false
+          } else {
+            obj.errorShow = true
+            checkOk = false
+          }
+          if (obj.realPath.length) {
+            obj.errorReal = false
+          } else {
+            obj.errorReal = true
+            checkOk = false
+          }
+        })
+        if (checkOk) {
+          this.closeErr()
+          this.registerBtn = false
+          this.axios.post(`${this.localhost}/initPath`, {
+            data: this.pathList
+          }).then(res => {
+            console.log(res.data)
+            if (res.data.status) {
+              this.showErr("注册成功", "success")
+              setTimeout(() => {
+                history.replaceState("", "", location.href)
+                location.reload()
+              }, 2000)
+            } else {
+              this.registerBtn = true
+              this.showErr(res.data.msg)
+              res.data.errList.forEach(i => {
+                this.pathList[i.num].errorShow = !!i.show
+                this.pathList[i.num].errorReal = !!i.real
+              })
+            }
+          }, err => {
+            console.log("出错", err)
+            this.registerBtn = true
+          })
+        } else {
+          this.showErr("请检查填写内容")
+        }
+      }
     }
   },
   mounted() {
@@ -65,7 +128,9 @@ export default {
     this.pathList.unshift({
       pathNum: new Date().getTime(),
       showPath: "",
-      realPath: ""
+      realPath: "",
+      errorShow: false,
+      errorReal: false
     })
   }
 }
@@ -231,6 +296,11 @@ input[type="password"] {
 input:focus {
   border-color: #0969da;
   outline: solid 3px #afcdf1;
+}
+
+input.show-error {
+  border-color: #FF2828;
+  outline: solid 3px #FF9393;
 }
 
 .button {
