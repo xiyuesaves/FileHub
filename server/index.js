@@ -8,6 +8,8 @@ const session = require('express-session');
 const bodyParser = require("body-parser");
 const mm = require('music-metadata');
 const md5 = require('js-md5');
+let dbPath;
+fs.accessSync(path, fs.constants.W_OK | fs.constants.R_OK)
 const db = require('better-sqlite3')('./server/database/fileHub.db'); // sqlite数据库
 const sessionDb = require('better-sqlite3')('./server/database/session.db'); // sqlite数据库
 
@@ -374,8 +376,8 @@ addRawPath(allRootList)
 app.listen(88);
 
 // 静态文件映射
-staticServer.use("/static", express.static('dist/static'));
-staticServer.use("/*", express.static('dist'));
+staticServer.use("/static", express.static(path.join(__dirname,'../dist/static')));
+staticServer.use("/*", express.static(path.join(__dirname,'../dist')));
 staticServer.listen(89);
 
 
