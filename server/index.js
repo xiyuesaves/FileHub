@@ -39,11 +39,14 @@ app.use(cors({ origin: ['http://192.168.0.103:8080', 'http://192.168.0.103:89'],
 
 let isInit = initDatabase(db), // 判断是否需要初始化
   allRootList = [];
+let userlist = db.prepare("SELECT userId FROM user").all()
+if (!userlist.length) {
+  isInit = true
+}
 if (!isInit) {
   allRootList = db.prepare("SELECT showPath,realPath FROM path").all()
   console.log("所有共享路径\n", allRootList)
 }
-
 // 登录接口
 app.post('/login', function(req, res) {
   const data = req.body.data
@@ -65,16 +68,18 @@ app.post('/login', function(req, res) {
 })
 
 // 初始化接口 仅在初始化数据库时启用
-if (isInit || false) {
+if (isInit) {
   app.post('/initialization', function(req, res) {
-    if (isInit || true) {
+    if (isInit) {
       console.log("初始化接口", req.body.data)
       let userName = req.body.data.name,
         password = req.body.data.password
       if (userName.length >= 2 && userName.length <= 8) {
         if (password.length >= 6 && password.length <= 18) {
           db.prepare("INSERT INTO user (userName,password,userLevel) VALUES (?,?,0)").run(userName, md5(password))
+          req.session.userId = db.prepare("SELECT userId FROM user WHERE userName = ?").get(userName)
           req.session.islogin = true
+          req.session.rootList = []
           res.json({
             status: true
           })
@@ -97,8 +102,73 @@ if (isInit || false) {
       res.end();
     }
   })
+  app.post('/initPath', function(req, res) {
+    if (isInit) {
+      let data = req.body.data
+      console.log("判断路径是否有误", data)
+      let isOk = true,
+        errList = []
+      for (var i = 0; i < data.length; i++) {
+        if (!data[i].errorShow && !data[i].errorReal) {
+          if (checkShowPath(data[i].showPath, )) { // 判断显示路径是否有效
+            if (checkRealPath(data[i].realPath)) { // 判断真实路径是否有效
+              console.log("检测通过", data[i])
+            } else {
+              isOk = false
+              errList.push({
+                num: i,
+                show: 0,
+                real: 1
+              })
+            }
+          } else {
+            isOk = false
+            errList.push({
+              num: i,
+              show: 1,
+              real: 0
+            })
+          }
+        } else {
+          isOk = false
+          errList.push({
+            num: i,
+            show: !data[i].errorShow,
+            real: !data[i].errorReal
+          })
+        }
+      }
+      if (isOk) {
+        let userId = req.session.userId
+        let addok = addPath(data, userId)
+        if (addok) {
+          isInit = false
+          req.session.rootList = addok
+          res.json({
+            status: true
+          })
+        } else {
+          res.json({
+            status: false,
+            code: 1,
+            msg: "服务器错误,请重试",
+            errList
+          })
+        }
+      } else {
+        res.json({
+          status: false,
+          code: 0,
+          msg: "路径信息有误",
+          errList
+        })
+      }
+    } else {
+      res.status(403);
+      res.end();
+    }
+  })
 }
-
 
 // 登录验证
 app.all("*", function(req, res, next) {
@@ -281,22 +351,25 @@ app.get('/info/*', async function(req, res) {
   }
 })
 // 文件预览接口
-console.log("启用虚拟文件地址")
-for (var i = 0; i < allRootList.length; i++) {
-  console.log((`/raw/${allRootList[i].showPath.replace(/\/$/,"")}`), " ==> ", encode(`/raw/${allRootList[i].showPath.replace(/\/$/,"/*").replace(/$/,"/*")}`), )
-  app.get(encode(`/raw/${allRootList[i].showPath.replace(/\/$/,"/*").replace(/$/,"/*")}`), (req, res, next) => {
-    let path = getRealPath(req.path.replace("/raw/", ""), req)
-    console.log("请求源文件", path)
-    if (authorizedRootDirectory(path, req)) {
-      next()
-    } else {
-      console.log("拒绝未授权目录的raw请求")
-      res.status(404);
-      res.end();
-    }
-  })
-  app.use(encode(`/raw/${allRootList[i].showPath.replace(/\/$/,"")}`), express.static(`${allRootList[i].realPath}`));
+function addRawPath(allRootList) {
+  console.log("启用虚拟文件地址")
+  for (var i = 0; i < allRootList.length; i++) {
+    console.log((`/raw/${allRootList[i].showPath.replace(/\/$/,"")}`), " ==> ", encode(`/raw/${allRootList[i].showPath.replace(/\/$/,"/*").replace(/$/,"/*")}`), )
+    app.get(encode(`/raw/${allRootList[i].showPath.replace(/\/$/,"/*").replace(/$/,"/*")}`), (req, res, next) => {
+      let path = getRealPath(req.path.replace("/raw/", ""), req)
+      console.log("请求源文件", path)
+      if (authorizedRootDirectory(path, req)) {
+        next()
+      } else {
+        console.log("拒绝未授权目录的raw请求")
+        res.status(404);
+        res.end();
+      }
+    })
+    app.use(encode(`/raw/${allRootList[i].showPath.replace(/\/$/,"")}`), express.static(`${allRootList[i].realPath}`));
+  }
 }
+addRawPath(allRootList)
 
 app.listen(88);
 
@@ -338,4 +411,54 @@ function getRealPath(urlPath, req) {
   let realPath = path.join(pathArr.join("/"));
   // console.log("转换地址", urlPath," ==> ", realPath)
   return realPath;
+}
+
+
+// 判断显示路径是否可用
+function checkShowPath(path) {
+  let errList = [
+      "/"
+    ],
+    isok = true
+  errList.forEach(str => {
+    if (path.includes(str)) {
+      console.log("显示路径无效")
+      isok = false
+    }
+  })
+  console.log("检测显示路径")
+  return isok
+}
+
+// 判断真实路径是否可用
+function checkRealPath(path) {
+  console.log("真实路径", path)
+  try {
+    fs.accessSync(path, fs.constants.W_OK | fs.constants.R_OK)
+    console.log("路径有效")
+    return true
+  } catch (err) {
+    console.log("路径无法使用")
+    return false
+  }
+}
+
+// 添加路径
+function addPath(data, userId) {
+  console.log("添加路径", data, userId)
+  if (data && userId) {
+    let paths = []
+    data.forEach(obj => {
+      let lastRowid = db.prepare("INSERT INTO path (showPath,realPath) VALUES (?,?)").run(obj.showPath, obj.realPath).lastInsertRowid
+      db.prepare("INSERT INTO user_path (userId,pathId) VALUES (?,?)").run(userId.userId, lastRowid)
+      paths.push({
+        showPath: obj.showPath,
+        realPath: obj.realPath
+      })
+    })
+    addRawPath(paths)
+    return paths
+  } else {
+    return false
+  }
 }
