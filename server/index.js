@@ -351,11 +351,11 @@ app.get('/info/*', async function(req, res) {
   }
 })
 // 文件预览接口
-function addRawPath(allRootList) {
+function addRawPath(rootList) {
   console.log("启用虚拟文件地址")
-  for (var i = 0; i < allRootList.length; i++) {
-    console.log((`/raw/${allRootList[i].showPath.replace(/\/$/,"")}`), " ==> ", encode(`/raw/${allRootList[i].showPath.replace(/\/$/,"/*").replace(/$/,"/*")}`), )
-    app.get(encode(`/raw/${allRootList[i].showPath.replace(/\/$/,"/*").replace(/$/,"/*")}`), (req, res, next) => {
+  for (var i = 0; i < rootList.length; i++) {
+    console.log((`/raw/${rootList[i].showPath.replace(/\/$/,"")}`), " ==> ", encode(`/raw/${rootList[i].showPath.replace(/\/$/,"/*").replace(/$/,"/*")}`), )
+    app.get(encode(`/raw/${rootList[i].showPath.replace(/\/$/,"/*").replace(/$/,"/*")}`), (req, res, next) => {
       let path = getRealPath(req.path.replace("/raw/", ""), req)
       console.log("请求源文件", path)
       if (authorizedRootDirectory(path, req)) {
@@ -366,7 +366,7 @@ function addRawPath(allRootList) {
         res.end();
       }
     })
-    app.use(encode(`/raw/${allRootList[i].showPath.replace(/\/$/,"")}`), express.static(`${allRootList[i].realPath}`));
+    app.use(encode(`/raw/${rootList[i].showPath.replace(/\/$/,"")}`), express.static(`${rootList[i].realPath}`));
   }
 }
 addRawPath(allRootList)

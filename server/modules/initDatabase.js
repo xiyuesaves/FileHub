@@ -10,9 +10,9 @@ const init = (db) => {
       DROP TABLE IF EXISTS "user";
       CREATE TABLE "user" (
         "userId" integer NOT NULL PRIMARY KEY AUTOINCREMENT,
-        "username" text NOT NULL,
+        "userName" text NOT NULL,
         "password" text NOT NULL,
-        "disable" integer(1) NOT NULL DEFAULT 0
+        "userLevel" integer(1) NOT NULL DEFAULT 1
       );
       DROP TABLE IF EXISTS "path";
       CREATE TABLE "path" (
