@@ -12,8 +12,9 @@
     </div>
     <div class="float-right">
       <!-- <menuButton showText="编辑" :clickFun="edit" v-bind="$attrs"/> -->
-      <menuButton showText="创建" arrow="true" :menuContent="createMenu" align="right" v-bind="$attrs"/>
-      <menuButton showText="上传" btnClass="btn-green" :clickFun="upload" v-bind="$attrs"/>
+      <!-- <menuButton showText="创建" arrow="true" :menuContent="createMenu" align="right" v-bind="$attrs"/> -->
+      <!-- <menuButton showText="设置" :clickFun="showSettings" v-bind="$attrs"/> -->
+      <!-- <menuButton showText="上传" btnClass="btn-green" :clickFun="upload" v-bind="$attrs"/> -->
     </div>
   </div>
 </template>
@@ -23,7 +24,7 @@ import selectDirectory from "./selectDirectory"
 import createMenu from "./createMenu"
 export default {
   name: "actionBar",
-  props: ["rootList", "selectDrive"],
+  props: ["rootList", "selectDrive", "showSettings"],
   data() {
     return {
       selectDirectory: selectDirectory,
@@ -34,9 +35,7 @@ export default {
     menuButton
   },
   methods: {
-    edit(){
-
-    },
+    edit(){},
     upload(){}
   }
 }

@@ -9,10 +9,10 @@
         <menuButton title="显示二维码" :url="urlHref" :menuContent="QrCode" align="right" icon="icon-erweima" />
       </div>
     </div>
-    <div class="tool-box">
+    <!-- <div class="tool-box">
       <p class="title-text">同步</p>
       <textarea class="edit-area input-style" v-model="editText" placeholder="记点什么..."></textarea>
-    </div>
+    </div> -->
     <div class="tool-box" v-if="sliders.length">
       <p class="title-text">统计</p>
       <div class="progress">

@@ -2,10 +2,10 @@
   <div class="menu-content">
     <div class="create-list">
       <div @click="_createFile()" class="create-item">
-        <span class="view-text">创建文件</span>
+        <span class="view-text">管理用户</span>
       </div>
       <div @click="_createFolder()" class="create-item">
-        <span class="view-text">创建文件夹</span>
+        <span class="view-text">?</span>
       </div>
     </div>
   </div>

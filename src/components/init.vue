@@ -1,5 +1,5 @@
 <template>
-  <div class="mask init" @keydown="keys">
+  <div class="mask init">
     <div class="center-content">
       <img class="logo" src="../assets/logo.png">
       <p class="login-title">Welcome to FileHub</p>
@@ -11,7 +11,7 @@
         </div>
       </transition>
       <transition name="register" mode="out-in">
-        <component v-bind="$attrs" :changeStep="changeStep" :closeErr="closeErr" :showErr="showErrFun" :is="step"></component>
+        <component v-bind="$attrs" :localhost="localhost" :changeStep="changeStep" :closeErr="closeErr" :showErr="showErrFun" :is="step"></component>
       </transition>
     </div>
   </div>
@@ -21,7 +21,7 @@ import register from './register';
 import selectPath from './selectPath';
 import md5 from 'js-md5';
 export default {
-  props: ["registerFun"],
+  props: ["registerFun","localhost"],
   inheritAttrs: false,
   data() {
     return {
@@ -52,25 +52,15 @@ export default {
       this.errClass = style
       this.errormsg = str
       this.showErr = true
-    },
-    keys(e) {
-      // 回车键切换到未填写内容上 如果全部填写则提交信息
-      if (e.keyCode === 13) {
-        if (this.userName.length) {
-          if (this.password.length) {
-            if (this.tryPassword.length) {
-              this.verify()
-            } else {
-              this.$refs.psw2.focus()
-            }
-          } else {
-            this.$refs.psw.focus()
-          }
-        } else {
-          this.$refs.name.focus()
-        }
-      }
     }
+  },
+  mounted() {
+    this.axios.get(`${this.localhost}/login`).then(res => {
+      console.log("步骤判断", res.data)
+      if (res.data.code === -2) {
+        this.changeStep("selectPath")
+      }
+    })
   }
 }
 

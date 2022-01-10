@@ -1,12 +1,12 @@
 <template>
-  <div class="login-box">
+  <div class="login-box" @keydown="keys">
     <span class="login-field">用户名</span>
     <input ref="name" v-model="userName" tabindex="1" type="text" name="">
     <span class="login-field">密码</span>
     <input ref="psw" v-model="password" tabindex="2" type="password" name="">
     <span class="login-field">确认密码</span>
     <input ref="psw2" v-model="tryPassword" tabindex="3" type="password" name="">
-    <menuButton tabindex="3" showText="创建管理员" :clickFun="verify" :btnClass="`btn-green ${!registerBtn ? 'disable-btn' : ''}`" />
+    <menuButton tabindex="3" showText="创建" :clickFun="verify" :btnClass="`btn-green ${!registerBtn ? 'disable-btn' : ''}`" />
   </div>
 </template>
 <script>
@@ -42,6 +42,24 @@ export default {
         this.showErr("请输入2-8位用户名")
       }
     },
+    keys(e) {
+      // 回车键切换到未填写内容上 如果全部填写则提交信息
+      if (e.keyCode === 13) {
+        if (this.userName.length) {
+          if (this.password.length) {
+            if (this.tryPassword.length) {
+              this.verify()
+            } else {
+              this.$refs.psw2.focus()
+            }
+          } else {
+            this.$refs.psw.focus()
+          }
+        } else {
+          this.$refs.name.focus()
+        }
+      }
+    },
     register() {
       this.registerBtn = false;
       this.axios.post(`${this.localhost}/initialization`, {
@@ -71,7 +89,7 @@ export default {
         this.showErr("初始化失败,请检查网络连接")
         this.registerBtn = true;
       })
-    },
+    }
   }
 }
 

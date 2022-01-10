@@ -3,9 +3,12 @@
     <!-- 登录组件 -->
     <login v-if="!islogin" :localhost="localhost" :loginFun="login" />
     <!-- 初始化组件 -->
-    <init v-if="!isInit" :localhost="localhost" :loginFun="init"/>
+    <init v-if="!isInit" :localhost="localhost"/>
     <!-- 报错提醒 -->
     <warning :showWarn="showWarn" />
+    <!-- 设置 -->
+    <settings v-if="false"/>
+    <!-- 主页面 -->
     <div class="main-view">
       <topTitle :title="title" />
       <actionBar :selectDrive="selectDrive" :rootList="rootList" :switchDirectory="switchDirectory" :createFolder="createFolder" :createFile="createFile" />
@@ -30,6 +33,7 @@ import previewFile from './components/previewFile';
 import warning from './components/warning';
 import login from './components/login';
 import init from './components/init';
+import settings from './components/settings';
 
 
 export default {
@@ -43,18 +47,20 @@ export default {
     popUps,
     warning,
     previewFile,
-    init
+    init,
+    settings
   },
   data() {
     return {
-      title: "测试页面", // 页面标题
+      title: "hello", // 页面标题
       islogin: true,
       isInit: true,
       rootList: [], // 文件列表
       source: this.axios.CancelToken.source(),
       selectDrive: "--", // 选中根目录
       filePath: "加载中...", // 文件路径
-      localhost: 'http://192.168.0.103:88', // 后台地址
+      localhost: "", // 后台地址
+      // localhost: "http://192.168.0.103:88", // 后台地址
       fileList: [], // 文件列表
       loadFileList: false,
       url: decodeURI(window.location.href),
@@ -394,14 +400,11 @@ export default {
       tempa.click()
       tempa.remove()
     },
-    init(){
-
-    },
     login() { // 判断登录信息
       this.axios.get(`${this.localhost}/login`).then(res => {
         console.log("登录判断", res.data)
         if (res.data.init) {
-          this.isInit = false;
+            this.isInit = false;
         } else if (res.data.status !== false) {
           this.islogin = true;
           this.getrootList() // 获取根目录

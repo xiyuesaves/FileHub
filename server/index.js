@@ -8,11 +8,8 @@ const session = require('express-session');
 const bodyParser = require("body-parser");
 const mm = require('music-metadata');
 const md5 = require('js-md5');
-let dbPath;
-fs.accessSync(path, fs.constants.W_OK | fs.constants.R_OK)
-const db = require('better-sqlite3')('./server/database/fileHub.db'); // sqlite数据库
-const sessionDb = require('better-sqlite3')('./server/database/session.db'); // sqlite数据库
-
+const db = require('better-sqlite3')('./fileHub.db'); // sqlite数据库
+const sessionDb = require('better-sqlite3')('./fileHub.db'); // sqlite数据库
 const SqliteStore = require("better-sqlite3-session-store")(session)
 
 // 模块
@@ -37,7 +34,8 @@ app.use(session({
   }
 }));
 
-app.use(cors({ origin: ['http://192.168.0.103:8080', 'http://192.168.0.103:89'], credentials: true, }));
+// 调试时需要启用cors
+// app.use(cors({ origin: ['http://192.168.0.103:8080'], credentials: true, }));
 
 let isInit = initDatabase(db), // 判断是否需要初始化
   allRootList = [];
@@ -70,136 +68,132 @@ app.post('/login', function(req, res) {
 })
 
 // 初始化接口 仅在初始化数据库时启用
-if (isInit) {
-  app.post('/initialization', function(req, res) {
-    if (isInit) {
-      console.log("初始化接口", req.body.data)
-      let userName = req.body.data.name,
-        password = req.body.data.password
-      if (userName.length >= 2 && userName.length <= 8) {
-        if (password.length >= 6 && password.length <= 18) {
-          db.prepare("INSERT INTO user (userName,password,userLevel) VALUES (?,?,0)").run(userName, md5(password))
-          req.session.userId = db.prepare("SELECT userId FROM user WHERE userName = ?").get(userName)
-          req.session.islogin = true
-          req.session.rootList = []
-          res.json({
-            status: true
-          })
-        } else {
-          res.json({
-            status: false,
-            code: 1,
-            msg: "密码长度错误"
-          })
-        }
+let onReg = false
+app.post('/initialization', function(req, res) {
+  if (isInit && !onReg) {
+    console.log("用户注册")
+    let userName = req.body.data.name,
+      password = req.body.data.password
+    if (userName.length >= 2 && userName.length <= 8) {
+      if (password.length >= 6 && password.length <= 18) {
+        db.prepare("INSERT INTO user (userName,password,userLevel) VALUES (?,?,0)").run(userName, md5(password))
+        req.session.userId = db.prepare("SELECT userId FROM user WHERE userName = ?").get(userName)
+        req.session.islogin = true
+        req.session.rootList = []
+        onReg = true
+        res.json({
+          status: true
+        })
       } else {
         res.json({
           status: false,
-          code: 0,
-          msg: "用户名长度错误"
+          code: 1,
+          msg: "密码长度错误"
         })
       }
     } else {
-      res.status(403);
-      res.end();
+      res.json({
+        status: false,
+        code: 0,
+        msg: "用户名长度错误"
+      })
     }
-  })
-  app.post('/initPath', function(req, res) {
-    if (isInit) {
-      let data = req.body.data
-      console.log("判断路径是否有误", data)
-      let isOk = true,
-        errList = []
-      for (var i = 0; i < data.length; i++) {
-        if (!data[i].errorShow && !data[i].errorReal) {
-          if (checkShowPath(data[i].showPath, )) { // 判断显示路径是否有效
-            if (checkRealPath(data[i].realPath)) { // 判断真实路径是否有效
-              console.log("检测通过", data[i])
-            } else {
-              isOk = false
-              errList.push({
-                num: i,
-                show: 0,
-                real: 1
-              })
-            }
+  } else {
+    res.status(403);
+    res.end();
+  }
+})
+
+app.post('/initPath', function(req, res) {
+  if (isInit) {
+    let data = req.body.data
+    console.log("判断路径是否有误", data)
+    let isOk = true,
+      errList = []
+    for (var i = 0; i < data.length; i++) {
+      if (!data[i].errorShow && !data[i].errorReal) {
+        if (checkShowPath(data[i].showPath, )) { // 判断显示路径是否有效
+          if (checkRealPath(data[i].realPath)) { // 判断真实路径是否有效
+            console.log("检测通过", data[i])
           } else {
             isOk = false
             errList.push({
               num: i,
-              show: 1,
-              real: 0
+              show: 0,
+              real: 1
             })
           }
         } else {
           isOk = false
           errList.push({
             num: i,
-            show: !data[i].errorShow,
-            real: !data[i].errorReal
-          })
-        }
-      }
-      if (isOk) {
-        let userId = req.session.userId
-        let addok = addPath(data, userId)
-        if (addok) {
-          isInit = false
-          req.session.rootList = addok
-          res.json({
-            status: true
-          })
-        } else {
-          res.json({
-            status: false,
-            code: 1,
-            msg: "服务器错误,请重试",
-            errList
+            show: 1,
+            real: 0
           })
         }
       } else {
+        isOk = false
+        errList.push({
+          num: i,
+          show: !data[i].errorShow,
+          real: !data[i].errorReal
+        })
+      }
+    }
+    if (isOk) {
+      let userId = req.session.userId
+      let addok = addPath(data, userId)
+      if (addok) {
+        isInit = false
+        req.session.rootList = addok
+        res.json({
+          status: true
+        })
+      } else {
         res.json({
           status: false,
-          code: 0,
-          msg: "路径信息有误",
+          code: 1,
+          msg: "服务器错误,请重试",
           errList
         })
       }
     } else {
-      res.status(403);
-      res.end();
+      res.json({
+        status: false,
+        code: 0,
+        msg: "路径信息有误",
+        errList
+      })
     }
-  })
-}
+  } else {
+    res.status(403);
+    res.end();
+  }
+})
+
+app.use("/static", express.static(path.join(__dirname, '../dist/static')));
 
 // 登录验证
-app.all("*", function(req, res, next) {
-  // console.log("请求路径",req.path)
-  if (isInit || false) {
-    req.session.islogin = false
+app.get('/login', function(req, res) {
+  if (req.session.islogin) {
+    if (req.session.rootList.length) {
+      res.json({
+        status: true
+      })
+    } else {
+      res.json({
+        status: false,
+        init: true,
+        code: -2,
+        msg: "需要初始化路径"
+      })
+    }
+  } else if (isInit) {
     res.json({
       status: false,
       init: true,
       code: -1,
       msg: "需要初始化"
-    })
-  } else if (req.session.islogin) {
-    next();
-  } else {
-    req.session.islogin = false
-    res.json({
-      status: false,
-      code: 0,
-      msg: "需要登录"
-    })
-  }
-})
-
-// 登录验证
-app.get('/login', function(req, res) {
-  if (req.session.islogin) {
-    res.json({
-      status: true
     })
   } else {
     res.json({
@@ -209,6 +203,22 @@ app.get('/login', function(req, res) {
     })
   }
 });
+
+// 登录验证
+app.all("*", function(req, res, next) {
+  console.log("请求路径",req.path)
+  if (isInit) {
+    if (!req.session.userId) {
+      req.session.islogin = false
+    }
+    res.sendFile(path.join(__dirname, '../dist/index.html'))
+  } else if (req.session.islogin) {
+    next();
+  } else {
+    req.session.islogin = false
+    res.sendFile(path.join(__dirname, '../dist/index.html'))
+  }
+})
 
 // 获取根目录接口
 app.get('/getRootList', function(req, res) {
@@ -354,12 +364,12 @@ app.get('/info/*', async function(req, res) {
 })
 // 文件预览接口
 function addRawPath(rootList) {
-  console.log("启用虚拟文件地址")
+  // console.log("加载虚拟文件地址",rootList)
   for (var i = 0; i < rootList.length; i++) {
-    console.log((`/raw/${rootList[i].showPath.replace(/\/$/,"")}`), " ==> ", encode(`/raw/${rootList[i].showPath.replace(/\/$/,"/*").replace(/$/,"/*")}`), )
+    // console.log((`/raw/${rootList[i].showPath.replace(/\/$/,"")}`), " ==> ", encode(`/raw/${rootList[i].showPath.replace(/\/$/,"/*").replace(/$/,"/*")}`), )
     app.get(encode(`/raw/${rootList[i].showPath.replace(/\/$/,"/*").replace(/$/,"/*")}`), (req, res, next) => {
       let path = getRealPath(req.path.replace("/raw/", ""), req)
-      console.log("请求源文件", path)
+      // console.log("请求源文件", path)
       if (authorizedRootDirectory(path, req)) {
         next()
       } else {
@@ -372,14 +382,13 @@ function addRawPath(rootList) {
   }
 }
 addRawPath(allRootList)
-
+app.use("/*", express.static(path.join(__dirname, '../dist')));
 app.listen(88);
-
 // 静态文件映射
-staticServer.use("/static", express.static(path.join(__dirname,'../dist/static')));
-staticServer.use("/*", express.static(path.join(__dirname,'../dist')));
-staticServer.listen(89);
-
+// staticServer.use("/static", express.static(path.join(__dirname,'../dist/static')));
+// staticServer.use("/*", express.static(path.join(__dirname,'../dist')));
+// staticServer.listen(89);
+console.log("fileHub已启动 http://localhost:88")
 
 // 获取文件类型
 function getFileType(fileName) {
@@ -437,6 +446,9 @@ function checkRealPath(path) {
   console.log("真实路径", path)
   try {
     fs.accessSync(path, fs.constants.W_OK | fs.constants.R_OK)
+    if (/:$/.test(path)) {
+      throw "error Path"
+    }
     console.log("路径有效")
     return true
   } catch (err) {
@@ -459,6 +471,9 @@ function addPath(data, userId) {
       })
     })
     addRawPath(paths)
+    setTimeout(()=> {
+      throw "restart"
+    },500)
     return paths
   } else {
     return false
