@@ -204,9 +204,14 @@ app.get('/login', function(req, res) {
   }
 });
 
+// 图标
+app.get("/favicon.ico", (req, res) => {
+  res.sendFile(path.join(__dirname, '../src/assets/logo.png'))
+})
+
 // 登录验证
 app.all("*", function(req, res, next) {
-  console.log("请求路径",req.path)
+  console.log("请求路径", req.path)
   if (isInit) {
     if (!req.session.userId) {
       req.session.islogin = false
@@ -471,9 +476,9 @@ function addPath(data, userId) {
       })
     })
     addRawPath(paths)
-    setTimeout(()=> {
+    setTimeout(() => {
       throw "restart"
-    },500)
+    }, 500)
     return paths
   } else {
     return false

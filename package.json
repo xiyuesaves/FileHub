@@ -14,7 +14,7 @@
   "pkg":{
     "scripts": "./server/run.js",
     "targets": ["node14-win"],
-    "assets":["dist/**","server/**","node_modules/better-sqlite3/build/Release/better_sqlite3.node"]
+    "assets":["dist/**","src/assets/logo.png","server/**","node_modules/better-sqlite3/build/Release/better_sqlite3.node"]
   },
   "dependencies": {
     "axios": "^0.24.0",
