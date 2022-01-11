@@ -54,6 +54,7 @@ app.post('/login', function(req, res) {
   console.log("登录请求\n", data, loginInfo)
   if (loginInfo && loginInfo.userLevel !== 2) {
     req.session.islogin = true;
+    req.session.userName = data.name;
     req.session.rootList = db.prepare("SELECT a.showPath,a.realPath FROM path a, user_path b WHERE a.pathId = b.pathId AND b.userId = ?").all(loginInfo.userId);
     console.log("该用户的路径列表\n", req.session.rootList)
     res.json({
@@ -78,7 +79,8 @@ app.post('/initialization', function(req, res) {
       if (password.length >= 6 && password.length <= 18) {
         db.prepare("INSERT INTO user (userName,password,userLevel) VALUES (?,?,0)").run(userName, md5(password))
         req.session.userId = db.prepare("SELECT userId FROM user WHERE userName = ?").get(userName)
-        req.session.islogin = true
+        req.session.islogin = true;
+        req.session.userName = userName;
         req.session.rootList = []
         onReg = true
         res.json({
@@ -211,7 +213,7 @@ app.get("/favicon.ico", (req, res) => {
 
 // 登录验证
 app.all("*", function(req, res, next) {
-  console.log("请求路径", req.path)
+  console.log(req.session.userName, "请求路径", req.path)
   if (isInit) {
     if (!req.session.userId) {
       req.session.islogin = false
@@ -350,7 +352,7 @@ app.get('/info/*', async function(req, res) {
       let stats = fs.statSync(path);
       if (stats.isFile()) {
         let info = await mm.parseFile(path)
-        res.json({common:info.common});
+        res.json({ common: info.common });
       } else {
         console.log("路径不是文件或没有权限")
         res.status(404);
