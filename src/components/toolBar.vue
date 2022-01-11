@@ -9,10 +9,10 @@
         <menuButton title="显示二维码" :url="urlHref" :menuContent="QrCode" align="right" icon="icon-erweima" />
       </div>
     </div>
-    <!-- <div class="tool-box">
+    <div class="tool-box">
       <p class="title-text">同步</p>
-      <textarea class="edit-area input-style" v-model="editText" placeholder="记点什么..."></textarea>
-    </div> -->
+      <textarea class="edit-area input-style" @focus="isFocus = true" @blur="changeFocus" v-model="syncMessages" placeholder="记点什么..."></textarea>
+    </div>
     <div class="tool-box" v-if="sliders.length">
       <p class="title-text">统计</p>
       <div class="progress">
@@ -35,14 +35,16 @@ import copy from "./copy"
 import md5 from 'js-md5'
 
 export default {
-  props: ["statisticsList", "urlHref", "selectFile", "downloadThisFile"],
+  props: ["statisticsList", "urlHref", "selectFile", "downloadThisFile", "localhost"],
   data() {
     return {
-      editText: "",
       sliders: [],
       isShow: false,
       copy: copy,
-      QrCode: QrCode
+      QrCode: QrCode,
+      syncMessages: "",
+      isFocus: false,
+      debounceFun: null
     }
   },
   components: {
@@ -50,7 +52,8 @@ export default {
   },
   watch: {
     statisticsList: "updateData",
-    selectFile: "showDownloadbtn"
+    selectFile: "showDownloadbtn",
+    syncMessages: "debounce"
   },
   methods: {
     updateData() {
@@ -102,7 +105,7 @@ export default {
             return "#456268"
             break
           default:
-            return '#' + md5(type).substr(3,6);
+            return '#' + md5(type).substr(3, 6);
         }
       }
       this.sliders = statisticsData
@@ -113,11 +116,37 @@ export default {
       } else {
         this.isShow = false
       }
+    },
+    debounce() { // 留言本节流提交
+      if (this.debounceFun) {
+        clearTimeout(this.debounceFun)
+      }
+      this.debounceFun = setTimeout(() => {
+        if (this.isFocus) {
+          this.sendGuestbook()
+        }
+      }, 300)
+    },
+    changeFocus() {
+      this.isFocus = false;
+      this.sendGuestbook()
+    },
+    sendGuestbook() {
+      this.axios.post(`${this.localhost}/guestbook`, { data: this.syncMessages })
+    },
+    loopUpdate() {
+      this.axios.get(`${this.localhost}/guestbook`).then(res => {
+        if (!this.isFocus) {
+          this.syncMessages = res.data.guestbook
+        }
+        setTimeout(this.loopUpdate, 500)
+      })
     }
   },
   mounted() {
     this.canvas = document.getElementById('qrCode')
     this.updateData()
+    this.loopUpdate()
   }
 }
 
