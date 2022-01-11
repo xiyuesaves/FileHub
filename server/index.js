@@ -350,7 +350,7 @@ app.get('/info/*', async function(req, res) {
       let stats = fs.statSync(path);
       if (stats.isFile()) {
         let info = await mm.parseFile(path)
-        res.json(info);
+        res.json({common:info.common});
       } else {
         console.log("路径不是文件或没有权限")
         res.status(404);
