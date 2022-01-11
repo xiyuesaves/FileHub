@@ -35,7 +35,7 @@ app.use(session({
 }));
 
 // 调试时需要启用cors
-// app.use(cors({ origin: ['http://192.168.0.103:8080'], credentials: true, }));
+app.use(cors({ origin: ['http://192.168.0.103:8080'], credentials: true, }));
 
 let isInit = initDatabase(db), // 判断是否需要初始化
   allRootList = [];
@@ -55,6 +55,7 @@ app.post('/login', function(req, res) {
   if (loginInfo && loginInfo.userLevel !== 2) {
     req.session.islogin = true;
     req.session.userName = data.name;
+    req.session.userId = loginInfo.userId;
     req.session.rootList = db.prepare("SELECT a.showPath,a.realPath FROM path a, user_path b WHERE a.pathId = b.pathId AND b.userId = ?").all(loginInfo.userId);
     console.log("该用户的路径列表\n", req.session.rootList)
     res.json({
@@ -78,10 +79,11 @@ app.post('/initialization', function(req, res) {
     if (userName.length >= 2 && userName.length <= 8) {
       if (password.length >= 6 && password.length <= 18) {
         db.prepare("INSERT INTO user (userName,password,userLevel) VALUES (?,?,0)").run(userName, md5(password))
-        req.session.userId = db.prepare("SELECT userId FROM user WHERE userName = ?").get(userName)
+        req.session.userId = db.prepare("SELECT userId FROM user WHERE userName = ?").get(userName).userId
         req.session.islogin = true;
         req.session.userName = userName;
-        req.session.rootList = []
+        req.session.rootList = [];
+        isInit = false;
         onReg = true
         res.json({
           status: true
@@ -105,79 +107,15 @@ app.post('/initialization', function(req, res) {
     res.end();
   }
 })
-
-app.post('/initPath', function(req, res) {
-  if (isInit) {
-    let data = req.body.data
-    console.log("判断路径是否有误", data)
-    let isOk = true,
-      errList = []
-    for (var i = 0; i < data.length; i++) {
-      if (!data[i].errorShow && !data[i].errorReal) {
-        if (checkShowPath(data[i].showPath, )) { // 判断显示路径是否有效
-          if (checkRealPath(data[i].realPath)) { // 判断真实路径是否有效
-            console.log("检测通过", data[i])
-          } else {
-            isOk = false
-            errList.push({
-              num: i,
-              show: 0,
-              real: 1
-            })
-          }
-        } else {
-          isOk = false
-          errList.push({
-            num: i,
-            show: 1,
-            real: 0
-          })
-        }
-      } else {
-        isOk = false
-        errList.push({
-          num: i,
-          show: !data[i].errorShow,
-          real: !data[i].errorReal
-        })
-      }
-    }
-    if (isOk) {
-      let userId = req.session.userId
-      let addok = addPath(data, userId)
-      if (addok) {
-        isInit = false
-        req.session.rootList = addok
-        res.json({
-          status: true
-        })
-      } else {
-        res.json({
-          status: false,
-          code: 1,
-          msg: "服务器错误,请重试",
-          errList
-        })
-      }
-    } else {
-      res.json({
-        status: false,
-        code: 0,
-        msg: "路径信息有误",
-        errList
-      })
-    }
-  } else {
-    res.status(403);
-    res.end();
-  }
-})
-
+// 静态资源文件夹
 app.use("/static", express.static(path.join(__dirname, '../dist/static')));
 
 // 登录验证
 app.get('/login', function(req, res) {
   if (req.session.islogin) {
+    if (!req.session.rootList.length) {
+      req.session.rootList = db.prepare("SELECT a.showPath,a.realPath FROM path a, user_path b WHERE a.pathId = b.pathId AND b.userId = ?").all(req.session.userId);
+    }
     if (req.session.rootList.length) {
       res.json({
         status: true
@@ -212,8 +150,8 @@ app.get("/favicon.ico", (req, res) => {
 })
 
 // 登录验证
-app.all("*", function(req, res, next) {
-  console.log(req.session.userName, "请求路径", req.path)
+app.all('*', function(req, res, next) {
+  // console.log(req.session.userName, "请求路径", req.path)
   if (isInit) {
     if (!req.session.userId) {
       req.session.islogin = false
@@ -227,10 +165,82 @@ app.all("*", function(req, res, next) {
   }
 })
 
+// 同步板接口
+app.post('/guestbook', function(req, res) {
+  // console.log("修改留言本", req.body.data,req.session.userId)
+  db.prepare("UPDATE user SET guestbook = ? WHERE userId = ?").run(req.body.data,req.session.userId)
+  res.json({
+    status:true
+  })
+})
+app.get('/guestbook', function(req, res) {
+  let data = db.prepare("SELECT guestbook FROM user WHERE userId = ?").get(req.session.userId);
+  res.json({
+    status:true,
+    guestbook:data.guestbook
+  })
+})
+
+// 新增路径
+app.post('/addPath', function(req, res) {
+  let data = req.body.data
+  console.log("判断路径是否有误", data)
+  let isOk = true,
+    errList = []
+  for (var i = 0; i < data.length; i++) {
+    if (!data[i].errorShow && !data[i].errorReal) {
+      if (checkShowPath(data[i].showPath, )) { // 判断显示路径是否有效
+        if (checkRealPath(data[i].realPath)) { // 判断真实路径是否有效
+          console.log("检测通过", data[i])
+        } else {
+          isOk = false
+          errList.push({
+            num: i,
+            show: 0,
+            real: 1
+          })
+        }
+      } else {
+        isOk = false
+        errList.push({
+          num: i,
+          show: 1,
+          real: 0
+        })
+      }
+    } else {
+      isOk = false
+      errList.push({
+        num: i,
+        show: !data[i].errorShow,
+        real: !data[i].errorReal
+      })
+    }
+  }
+  if (isOk) {
+    let userId = req.session.userId
+    addPath(data, userId)
+    res.json({
+      status: true
+    })
+  } else {
+    res.json({
+      status: false,
+      code: 0,
+      msg: "路径信息有误",
+      errList
+    })
+  }
+})
+
 // 获取根目录接口
 app.get('/getRootList', function(req, res) {
-  if (req.session.rootList.length) {
-    let showPath = req.session.rootList.map(item => {
+  if (req.session.islogin && req.session.rootList.length) {
+    let paths = req.session.rootList
+    if (paths.length) {
+      paths = db.prepare("SELECT a.showPath,a.realPath FROM path a, user_path b WHERE a.pathId = b.pathId AND b.userId = ?").all(req.session.userId);
+    }
+    let showPath = paths.map(item => {
       return {
         rootPath: item.showPath
       }
@@ -344,7 +354,7 @@ app.get('/download/*', function(req, res) {
 });
 
 // 媒体信息接口
-app.get('/info/*', async function(req, res) {
+app.post('/info/*', async function(req, res) {
   let path = getRealPath(req.url.replace("/info/", ""), req)
   if (authorizedRootDirectory(path, req)) {
     console.log("获取媒体信息", path)
@@ -369,6 +379,7 @@ app.get('/info/*', async function(req, res) {
     res.end();
   }
 })
+
 // 文件预览接口
 function addRawPath(rootList) {
   // console.log("加载虚拟文件地址",rootList)
@@ -389,6 +400,7 @@ function addRawPath(rootList) {
   }
 }
 addRawPath(allRootList)
+
 app.use("/*", express.static(path.join(__dirname, '../dist')));
 app.listen(88);
 // 静态文件映射
@@ -471,7 +483,7 @@ function addPath(data, userId) {
     let paths = []
     data.forEach(obj => {
       let lastRowid = db.prepare("INSERT INTO path (showPath,realPath) VALUES (?,?)").run(obj.showPath, obj.realPath).lastInsertRowid
-      db.prepare("INSERT INTO user_path (userId,pathId) VALUES (?,?)").run(userId.userId, lastRowid)
+      db.prepare("INSERT INTO user_path (userId,pathId) VALUES (?,?)").run(userId, lastRowid)
       paths.push({
         showPath: obj.showPath,
         realPath: obj.realPath

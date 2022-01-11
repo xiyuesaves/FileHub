@@ -12,6 +12,7 @@ const init = (db) => {
         "userId" integer NOT NULL PRIMARY KEY AUTOINCREMENT,
         "userName" text NOT NULL,
         "password" text NOT NULL,
+        "guestbook" text,
         "userLevel" integer(1) NOT NULL DEFAULT 1
       );
       DROP TABLE IF EXISTS "path";
