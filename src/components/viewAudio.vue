@@ -446,10 +446,15 @@ export default {
 .other-info {
   position: absolute;
   top: 28px;
+  max-width: 100%;
   margin: 0;
   font-size: 12px;
+  display: block;
+  height: 16px;
+  text-overflow: ellipsis;
+  overflow: hidden;
   left: 130px;
-  color: #999999;
+  color: #999;
 }
 
 .controls {
