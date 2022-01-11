@@ -95,16 +95,16 @@ export default {
         if (checkOk) {
           this.closeErr()
           this.registerBtn = false
-          this.axios.post(`${this.localhost}/initPath`, {
+          this.axios.post(`${this.localhost}/addPath`, {
             data: this.pathList
           }).then(res => {
             console.log(res.data)
             if (res.data.status) {
-              this.showErr("注册成功", "success")
+              this.showErr("注册成功,等待页面跳转", "success")
               setTimeout(() => {
                 history.replaceState("", "", location.href)
                 location.reload()
-              }, 2000)
+              }, 1500)
             } else {
               this.registerBtn = true
               this.showErr(res.data.msg)
@@ -124,7 +124,6 @@ export default {
     }
   },
   mounted() {
-    console.log("aaa")
     this.pathList.unshift({
       pathNum: new Date().getTime(),
       showPath: "",
