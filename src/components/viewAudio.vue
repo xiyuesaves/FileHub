@@ -101,7 +101,7 @@ export default {
         this.source.cancel('结束上一次请求');
       }
       this.loadInfo = true
-      this.axios.get(this.infoLink, {
+      this.axios.post(this.infoLink, {
         cancelToken: this.newCancelToken()
       }).then((res) => {
         this.loadInfo = false;
