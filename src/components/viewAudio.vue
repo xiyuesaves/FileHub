@@ -20,7 +20,7 @@
       <div class="controls">
         <button @click="pauseMusic" :class="['play-btn','iconfont',{'icon-24gf-pause2':isplayMusic},{'icon-24gf-play':!isplayMusic}]">
         </button>
-        <div class="progress">
+        <div class="progress" :class="[{disabled:!canplay}]">
           <div ref="progressBar" class="progress-bar">
             <div :style="{transform:`translateX(-${100 - progressRate}%)`,transition:`transform ${transitionDelay}`}" class="inside-bar"></div>
           </div>
@@ -58,6 +58,7 @@ export default {
       isplayMusic: false, // 是否正在播放
       loadInfo: false, // 是否加载完成
       transitionPause: "", // 播放暂停过渡效果
+      canplay: false // 是否能够播放
     }
   },
   methods: {
@@ -73,11 +74,12 @@ export default {
       this.isPicture = false;
       this.isplayMusic = false;
       this.mediaInformation = "";
-      this.showMusicName = "";
+      this.showMusicName = this.selectFile;
       this.playTime = 0;
       this.endTime = 0;
       this.progressRate = 0;
       this.lastRate = 0;
+      this.canplay = false;
       this.$refs.audio.volume = 1;
       let turntableColor = "",
         leve = 30
@@ -150,32 +152,36 @@ export default {
       })
     },
     pauseMusic() { // 渐入渐出暂停播放
-      this.isplayMusic = !this.isplayMusic
-      if (this.isplayMusic) {
-        clearTimeout(this.transitionPause)
-        this.$refs.audio.play()
-        let upV = () => {
-          this.transitionPause = setTimeout(() => {
-            if (this.$refs.audio.volume !== 1) {
-              this.$refs.audio.volume = Math.floor((this.$refs.audio.volume + 0.1) * 100) / 100
-              upV()
-            }
-          }, 20)
+      if (this.canplay) {
+        this.isplayMusic = !this.isplayMusic
+        if (this.isplayMusic) {
+          clearTimeout(this.transitionPause)
+          this.$refs.audio.play()
+          let upV = () => {
+            this.transitionPause = setTimeout(() => {
+              if (this.$refs.audio.volume !== 1) {
+                this.$refs.audio.volume = Math.floor((this.$refs.audio.volume + 0.1) * 100) / 100
+                upV()
+              }
+            }, 20)
+          }
+          upV()
+        } else {
+          clearTimeout(this.transitionPause)
+          let downV = () => {
+            this.transitionPause = setTimeout(() => {
+              if (this.$refs.audio.volume !== 0) {
+                this.$refs.audio.volume = Math.floor((this.$refs.audio.volume - 0.1) * 100) / 100
+                downV()
+              } else {
+                this.$refs.audio.pause()
+              }
+            }, 20)
+          }
+          downV()
         }
-        upV()
       } else {
-        clearTimeout(this.transitionPause)
-        let downV = () => {
-          this.transitionPause = setTimeout(() => {
-            if (this.$refs.audio.volume !== 0) {
-              this.$refs.audio.volume = Math.floor((this.$refs.audio.volume - 0.1) * 100) / 100
-              downV()
-            } else {
-              this.$refs.audio.pause()
-            }
-          }, 20)
-        }
-        downV()
+        this.newWran("请稍等,正在缓冲")
       }
     },
     holdBtn(e) { // 鼠标按下
@@ -217,7 +223,7 @@ export default {
     }
   },
   watch: {
-    selectFile(newName) {
+    selectFile() {
       this.initDisc();
       this.scrollName(); // 名称超长判断
     },
@@ -233,6 +239,7 @@ export default {
     this.initDisc(); // 初始化播放器
     this.scrollName();
     this.$refs.audio.addEventListener("canplay", () => {
+      this.canplay = true;
       this.endTime = Math.floor(this.$refs.audio.duration)
     })
     this.$refs.audio.addEventListener("timeupdate", () => {
@@ -493,7 +500,9 @@ export default {
   height: 3px;
   position: relative;
 }
-
+.progress.disabled{
+  pointer-events: none;
+}
 .progress-bar {
   width: 100%;
   height: 100%;
