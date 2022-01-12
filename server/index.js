@@ -181,18 +181,22 @@ app.all('*', function(req, res, next) {
 // 同步板接口
 io.on('connection', (socket) => {
   let userId = socket.request.session.userId
-  console.log(socket.request.session.userName, "已建立连接,移入对应房间")
-  socket.join(userId)
-  socket.on("getMessage", () => {
-    console.log("获取初始文本数据")
-    let msg = db.prepare("SELECT guestbook FROM user WHERE userId = ?").get(userId);
-    socket.emit("newMessage", msg.guestbook)
-  })
-  socket.on("updateMessage", (msg) => {
-    console.log("更新信息", msg)
-    db.prepare("UPDATE user SET guestbook = ? WHERE userId = ?").run(msg, userId)
-    socket.to(userId).emit("newMessage", msg)
-  })
+  if (userId) {
+    console.log(socket.request.session.userName, "已建立连接,移入对应房间")
+    socket.join(userId)
+    socket.on("getMessage", () => {
+      console.log("获取初始文本数据")
+      let msg = db.prepare("SELECT guestbook FROM user WHERE userId = ?").get(userId);
+      socket.emit("newMessage", msg.guestbook)
+    })
+    socket.on("updateMessage", (msg) => {
+      console.log("更新信息", msg)
+      db.prepare("UPDATE user SET guestbook = ? WHERE userId = ?").run(msg, userId)
+      socket.to(userId).emit("newMessage", msg)
+    })
+  } else {
+    console.log("没有userId")
+  }
 })
 
 // 新增路径
