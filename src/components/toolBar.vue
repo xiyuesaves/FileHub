@@ -11,7 +11,7 @@
     </div>
     <div class="tool-box">
       <p class="title-text">同步</p>
-      <textarea class="edit-area input-style" @focus="isFocus = true" @blur="changeFocus" v-model="syncMessages" placeholder="记点什么..."></textarea>
+      <textarea class="edit-area input-style" @focus="isFocus = true" @blur="isFocus = false" v-model="syncMessages" placeholder="记点什么..."></textarea>
     </div>
     <div class="tool-box" v-if="sliders.length">
       <p class="title-text">统计</p>
@@ -33,9 +33,10 @@ import menuButton from "./menuButton"
 import QrCode from "./QrCode"
 import copy from "./copy"
 import md5 from 'js-md5'
+import { io } from "socket.io-client"
 
 export default {
-  props: ["statisticsList", "urlHref", "selectFile", "downloadThisFile", "localhost"],
+  props: ["statisticsList", "urlHref", "selectFile", "downloadThisFile", "localhost", "userId"],
   data() {
     return {
       sliders: [],
@@ -44,6 +45,8 @@ export default {
       QrCode: QrCode,
       syncMessages: "",
       isFocus: false,
+      io: io,
+      socket: null,
       debounceFun: null
     }
   },
@@ -53,7 +56,8 @@ export default {
   watch: {
     statisticsList: "updateData",
     selectFile: "showDownloadbtn",
-    syncMessages: "debounce"
+    userId: "contentSocket",
+    syncMessages: "sendMessages"
   },
   methods: {
     updateData() {
@@ -117,36 +121,30 @@ export default {
         this.isShow = false
       }
     },
-    debounce() { // 留言本节流提交
-      if (this.debounceFun) {
-        clearTimeout(this.debounceFun)
+    contentSocket() {
+      if (this.userId) {
+        this.socket = io(`${this.localhost}`, {
+          withCredentials: true
+        })
+        this.socket.on("connect", () => {
+          console.log("socket连接成功,请求初始数据")
+          this.socket.emit("getMessage")
+        })
+        this.socket.on("newMessage", (data) => {
+          console.log("新消息数据", data)
+          this.syncMessages = data;
+        })
       }
-      this.debounceFun = setTimeout(() => {
-        if (this.isFocus) {
-          this.sendGuestbook()
-        }
-      }, 300)
     },
-    changeFocus() {
-      this.isFocus = false;
-      this.sendGuestbook()
-    },
-    sendGuestbook() {
-      this.axios.post(`${this.localhost}/guestbook`, { data: this.syncMessages })
-    },
-    loopUpdate() {
-      this.axios.get(`${this.localhost}/guestbook`).then(res => {
-        if (!this.isFocus) {
-          this.syncMessages = res.data.guestbook
-        }
-        setTimeout(this.loopUpdate, 500)
-      })
+    sendMessages() {
+      if (this.socket && this.isFocus) {
+        this.socket.emit("updateMessage",this.syncMessages)
+      }
     }
   },
   mounted() {
     this.canvas = document.getElementById('qrCode')
     this.updateData()
-    this.loopUpdate()
   }
 }
 

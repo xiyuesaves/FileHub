@@ -1,7 +1,10 @@
 const express = require("express");
+const app = express(); // 接口服务
+const http = require('http');
+const server = http.createServer(app);
+const { Server } = require("socket.io");
 const fs = require('fs');
 const path = require('path');
-const app = express(); // 接口服务
 const staticServer = express(); // 静态文件服务
 const cors = require("cors"); // 跨域组件
 const session = require('express-session');
@@ -16,9 +19,8 @@ const SqliteStore = require("better-sqlite3-session-store")(session)
 const { decode, encode } = require('./modules/escape.js');
 const initDatabase = require('./modules/initDatabase.js');
 
-app.use(bodyParser.json());
-
-app.use(session({
+// session中间件配置
+const sessionMiddleware = session({
   store: new SqliteStore({
     client: sessionDb,
     expired: {
@@ -32,10 +34,20 @@ app.use(session({
   cookie: {
     maxAge: 604800000
   }
-}));
+})
+// cors配置
+const corsOption = { origin: ['http://192.168.0.103:8080'], credentials: true, }
+
+// 中间件
+app.use(bodyParser.json());
+app.use(sessionMiddleware);
+const io = new Server(server, { cors: corsOption });
+io.use((socket, next) => {
+  sessionMiddleware(socket.request, {}, next);
+})
 
 // 调试时需要启用cors
-app.use(cors({ origin: ['http://192.168.0.103:8080'], credentials: true, }));
+app.use(cors(corsOption));
 
 let isInit = initDatabase(db), // 判断是否需要初始化
   allRootList = [];
@@ -118,7 +130,8 @@ app.get('/login', function(req, res) {
     }
     if (req.session.rootList.length) {
       res.json({
-        status: true
+        status: true,
+        userId: req.session.userId
       })
     } else {
       res.json({
@@ -145,7 +158,7 @@ app.get('/login', function(req, res) {
 });
 
 // 图标
-app.get("/favicon.ico", (req, res) => {
+app.get('/favicon.ico', (req, res) => {
   res.sendFile(path.join(__dirname, '../src/assets/logo.png'))
 })
 
@@ -166,18 +179,19 @@ app.all('*', function(req, res, next) {
 })
 
 // 同步板接口
-app.post('/guestbook', function(req, res) {
-  // console.log("修改留言本", req.body.data,req.session.userId)
-  db.prepare("UPDATE user SET guestbook = ? WHERE userId = ?").run(req.body.data,req.session.userId)
-  res.json({
-    status:true
+io.on('connection', (socket) => {
+  let userId = socket.request.session.userId
+  console.log(socket.request.session.userName, "已建立连接,移入对应房间")
+  socket.join(userId)
+  socket.on("getMessage", () => {
+    console.log("获取初始文本数据")
+    let msg = db.prepare("SELECT guestbook FROM user WHERE userId = ?").get(userId);
+    socket.emit("newMessage", msg.guestbook)
   })
-})
-app.get('/guestbook', function(req, res) {
-  let data = db.prepare("SELECT guestbook FROM user WHERE userId = ?").get(req.session.userId);
-  res.json({
-    status:true,
-    guestbook:data.guestbook
+  socket.on("updateMessage", (msg) => {
+    console.log("更新信息", msg)
+    db.prepare("UPDATE user SET guestbook = ? WHERE userId = ?").run(msg, userId)
+    socket.to(userId).emit("newMessage", msg)
   })
 })
 
@@ -402,7 +416,7 @@ function addRawPath(rootList) {
 addRawPath(allRootList)
 
 app.use("/*", express.static(path.join(__dirname, '../dist')));
-app.listen(88);
+server.listen(88);
 // 静态文件映射
 // staticServer.use("/static", express.static(path.join(__dirname,'../dist/static')));
 // staticServer.use("/*", express.static(path.join(__dirname,'../dist')));

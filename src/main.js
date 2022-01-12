@@ -6,13 +6,18 @@ import VueClipboard from 'vue-clipboard2'
 import App from './App'
 import axios from 'axios'
 import VueAxios from 'vue-axios'
-
+import SocketIO from 'socket.io-client'
 import VueVideoPlayer from 'vue-video-player'
 
 import 'video.js/dist/video-js.css'
 import './assets/iconfont.css'
 
 axios.defaults.withCredentials = true; // 设置axios跨域
+
+// socket 连接参数
+const socketOptions = {
+  autoConnect: false,       // 自动连接     这里为我项目需求  需要在指定情况下才连接socket
+}
 
 Vue.use(VueVideoPlayer);
 Vue.use(VueAxios, axios);

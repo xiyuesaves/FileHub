@@ -1,13 +1,13 @@
 <template>
-  <div @scroll="fileListScroll" id="app" >
+  <div @scroll="fileListScroll" id="app">
     <!-- 登录组件 -->
     <login v-if="!islogin" :localhost="localhost" :loginFun="login" />
     <!-- 初始化组件 -->
-    <init v-if="!isInit" :localhost="localhost"/>
+    <init v-if="!isInit" :localhost="localhost" />
     <!-- 报错提醒 -->
     <warning :showWarn="showWarn" />
     <!-- 设置 -->
-    <settings v-if="false"/>
+    <settings v-if="false" />
     <!-- 主页面 -->
     <div class="main-view">
       <topTitle :title="title" />
@@ -18,7 +18,7 @@
       <!-- <popUps v-if="selectFile" :formatSize="formatSize" :isOpen="showPreviewFile" @changeSelectFile="changeSelectFile" :maskContent="previewFile" :filePath="filePath" :fileLists="fileList" :selectFile="selectFile" :fileIcons="fileIcons" :closeMask="closePreviewFile" /> -->
     </div>
     <div class="tool-bar">
-      <toolBar :downloadThisFile="downloadThisFile" :localhost="localhost" :selectFile="selectFile" :statisticsList="fileList" :urlHref="url" />
+      <toolBar :userId="userId" :downloadThisFile="downloadThisFile" :localhost="localhost" :selectFile="selectFile" :statisticsList="fileList" :urlHref="url" />
     </div>
   </div>
 </template>
@@ -55,12 +55,13 @@ export default {
       title: "hello", // 页面标题
       islogin: true,
       isInit: true,
+      userId: null,
       rootList: [], // 文件列表
       source: this.axios.CancelToken.source(),
       selectDrive: "--", // 选中根目录
       filePath: "加载中...", // 文件路径
-      localhost: "", // 后台地址
-      // localhost: "http://192.168.0.103:88", // 后台地址
+      // localhost: "", // 后台地址
+      localhost: "http://192.168.0.103:88", // 后台地址
       fileList: [], // 文件列表
       loadFileList: false,
       url: decodeURI(window.location.href),
@@ -248,7 +249,7 @@ export default {
               history.replaceState({ lastPath: window.location.href }, "", this.encode(encodeURI(`${this.urlHost}/${replyPath.replace("","")}`)))
             } else {
               console.log("获取路径成功_前进地址")
-              history.pushState({ lastPath: window.location.href }, "",  this.encode(encodeURI(`${this.urlHost}/${replyPath.replace("","")}`)))
+              history.pushState({ lastPath: window.location.href }, "", this.encode(encodeURI(`${this.urlHost}/${replyPath.replace("","")}`)))
             }
             this.urlPath = replyPath
           } else {
@@ -279,7 +280,7 @@ export default {
           console.log("获取路径失败_请求文件出错", res.data.error.code)
         }
       }, err => {
-        this.newWran(`无法请求服务器,请检查网络连接`)
+        this.newWran(`无法请求服务器,请检查网络连接`, 9999)
         console.log(err)
       })
     },
@@ -359,6 +360,7 @@ export default {
     formatDate(time) { // 格式化时间
       let date = new Date(time);
       return `${date.getFullYear()}/${fullZero(date.getMonth()+1)}/${fullZero(date.getDay())} ${fullZero(date.getHours())}:${fullZero(date.getMinutes())}:${fullZero(date.getSeconds())}`
+
       function fullZero(num) {
         let str = "00" + num
         return str.slice(-2)
@@ -404,13 +406,16 @@ export default {
       this.axios.get(`${this.localhost}/login`).then(res => {
         console.log("登录判断", res.data)
         if (res.data.init) {
-            this.isInit = false;
-        } else if (res.data.status !== false) {
+          this.isInit = false;
+        } else if (res.data.status) {
           this.islogin = true;
-          this.getrootList() // 获取根目录
+          this.userId = res.data.userId;
+          this.getrootList(); // 获取根目录
         } else {
           this.islogin = false;
         }
+      }, err => {
+        this.newWran(`无法请求服务器,请检查网络连接`, 9999)
       })
     }
   },

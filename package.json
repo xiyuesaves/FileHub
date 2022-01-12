@@ -11,10 +11,17 @@
     "pkg": "pkg -C GZip ."
   },
   "bin": "./server/run.js",
-  "pkg":{
+  "pkg": {
     "scripts": "./server/run.js",
-    "targets": ["node14-win"],
-    "assets":["dist/**","src/assets/logo.png","server/**","node_modules/better-sqlite3/build/Release/better_sqlite3.node"]
+    "targets": [
+      "node14-win"
+    ],
+    "assets": [
+      "dist/**",
+      "src/assets/logo.png",
+      "server/**",
+      "node_modules/better-sqlite3/build/Release/better_sqlite3.node"
+    ]
   },
   "dependencies": {
     "axios": "^0.24.0",
@@ -28,6 +35,8 @@
     "music-metadata": "^7.11.4",
     "node-id3": "^0.2.3",
     "qrcode": "^1.4.4",
+    "socket.io": "^4.4.1",
+    "socket.io-client": "^4.4.1",
     "vue": "^2.5.2",
     "vue-axios": "^3.4.0",
     "vue-clipboard2": "^0.3.3",
