@@ -1,21 +1,18 @@
-# test
+# FileHub
 
-> A Vue.js project
+###### github风格文件管理工具
 
-## Build Setup
+![](C:\Users\admin HR\Desktop\整理\testVue\src\assets\logo.png)
+
+## 部署
 
 ``` bash
-# install dependencies
-npm install
-
-# serve with hot reload at localhost:8080
-npm run dev
-
-# build for production with minification
+# 编译页面
 npm run build
 
-# build for production and view the bundle analyzer report
-npm run build --report
-```
+# 直接运行
+npm run server
 
-For a detailed explanation on how things work, check out the [guide](http://vuejs-templates.github.io/webpack/) and [docs for vue-loader](http://vuejs.github.io/vue-loader).
+# 打包为独立可执行文件(默认win64)
+npm run pkg
+```
