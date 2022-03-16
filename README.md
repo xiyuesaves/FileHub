@@ -2,7 +2,6 @@
 
 ###### github风格文件管理工具
 
-![](C:\Users\admin HR\Desktop\整理\testVue\src\assets\logo.png)
 
 ## 部署
 
